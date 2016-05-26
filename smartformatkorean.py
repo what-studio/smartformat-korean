@@ -14,11 +14,17 @@ import re
 from smartformat import ext
 
 
+INITIALS = list(u'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ')
+VOWELS = list(u'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ')
+FINALS = [None]
+FINALS.extend(u'ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ')
+
+NUM_INITIALS = len(INITIALS)
+NUM_VOWELS = len(VOWELS)
+NUM_FINALS = len(FINALS)
+
 FORM1, FORM2, DEFAULT = 0, 1, 2
-KA_ORD = ord(u'가')
-JONGSEONGS = [None]
-JONGSEONGS.extend(u'ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ')
-NUM_JONGSEONGS = len(JONGSEONGS)
+FIRST_HANGUL_OFFSET = ord(u'가')
 ENDING_BRACKET_PATTERN = re.compile(r'\(.*?\)$')
 
 
@@ -27,18 +33,24 @@ def combine_forms(form1, form2):
     return u'%s(%s)' % (form1, form2)
 
 
-def pick_final_jongseong(word):
-    """Picks a Hangul jongseong of the final letter of a word.
+def split_phonemes(letter, initial=True, vowel=True, final=True):
+    """Splits Korean phonemes as known as "자소" from a Hangul letter.
 
-    :returns: ``None`` or a Hangul jaeum.
-    :raises ValueError: given word doesn't end with Hangul.
+    :returns: (initial, vowel, final)
+    :raises ValueError: `letter` is not a Hangul single letter.
 
     """
-    final = word[-1]
-    if u'가' <= final <= u'힣':
-        return JONGSEONGS[(ord(final) - KA_ORD) % NUM_JONGSEONGS]
-    else:
-        raise ValueError('Not ends with Hangul: %r' % word)
+    if not u'가' <= letter <= u'힣' or len(letter) != 1:
+        raise ValueError('Not Hangul letter: %r' % letter)
+    offset = ord(letter) - FIRST_HANGUL_OFFSET
+    phonemes = [None] * 3
+    if initial:
+        phonemes[0] = INITIALS[offset / (NUM_VOWELS * NUM_FINALS)]
+    if vowel:
+        phonemes[1] = VOWELS[(offset / NUM_FINALS) % NUM_VOWELS]
+    if final:
+        phonemes[2] = FINALS[offset % NUM_FINALS]
+    return tuple(phonemes)
 
 
 class Particle(object):
@@ -52,33 +64,56 @@ class Particle(object):
         else:
             self.default = default
 
-    def allomorph(self, jongseong):
-        """Determines one of allomorphic forms based on a Hangul jongseung."""
-        return FORM2 if jongseong is None else FORM1
-
     def __call__(self, word):
         """Selects an allomorphic form for the given word."""
         word = ENDING_BRACKET_PATTERN.sub(u'', word)
         try:
-            jongseong = pick_final_jongseong(word)
+            __, __, final = split_phonemes(word[-1], initial=False,
+                                           vowel=False, final=True)
         except ValueError:
-            x = DEFAULT
+            return self.default
         else:
-            x = self.allomorph(jongseong)
-        return {FORM1: self.form1, FORM2: self.form2, DEFAULT: self.default}[x]
+            return self.allomorph(final)
 
     def __iter__(self):
         """Iterates for all allomorphic forms."""
-        return iter([self.form1, self.form2, self.default])
+        return iter([self.default, self.form1, self.form2])
+
+    def allomorph(self, final):
+        """Determines one of allomorphic forms based on a Hangul jongseung."""
+        return self.form2 if final is None else self.form1
 
 
 class ParticleRieulSpecialized(Particle):
-    """The special case of Korean particle after jongseong Rieul such as
+    """The special case of Korean particle after final Rieul such as
     "으로".
     """
 
-    def allomorph(self, jongseong):
-        return FORM2 if jongseong is None or jongseong == u'ㄹ' else FORM1
+    def allomorph(self, final):
+        if final is None or final == u'ㄹ':
+            return self.form2
+        else:
+            return self.form1
+
+
+class VerbalParticle(Particle):
+    """The special case of Korean verbal particle "이다"."""
+
+    def normalize_verb(self, verb):
+        return re.sub(r'^이|\(이\)', u'', verb)
+
+    def __call__(self, word, verb):
+        word = ENDING_BRACKET_PATTERN.sub(u'', word)
+        verb = self.normalize_verb(verb)
+        try:
+            final = pick_final(word)
+        except ValueError:
+            return self.default
+        else:
+            return self.allomorph(final)
+
+    # def allormorph(self, final):
+
 
 
 #: Supported Korean particles.

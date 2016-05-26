@@ -2,7 +2,7 @@
 import pytest
 from smartformat import SmartFormatter
 
-from smartformatkorean import ko
+from smartformatkorean import ko, split_phonemes
 
 
 @pytest.fixture
@@ -10,6 +10,17 @@ def smart():
     formatter = SmartFormatter()
     formatter.register([ko])
     return formatter
+
+
+def test_split_phonemes():
+    assert split_phonemes(u'쏚') == (u'ㅆ', u'ㅗ', u'ㄲ')
+    assert split_phonemes(u'섭') == (u'ㅅ', u'ㅓ', u'ㅂ')
+    assert split_phonemes(u'투') == (u'ㅌ', u'ㅜ', None)
+    assert split_phonemes(u'투', initial=False) == (None, u'ㅜ', None)
+    with pytest.raises(ValueError):
+        split_phonemes(u'X')
+    with pytest.raises(ValueError):
+        split_phonemes(u'섭섭')
 
 
 def test_explicit(smart):
@@ -55,7 +66,8 @@ def test_vocative_particles(smart):
     assert f(u'{:이시여}', u'바다') == u'바다시여'
 
 
-def test_i(smart):
+def test_ita(smart):
+    """Cases for '이다' which is a copulative and existential verb."""
     f = smart.format
     # Do or don't inject '이'.
     assert f(u'{:이다}', u'피카츄') == u'피카츄다'
