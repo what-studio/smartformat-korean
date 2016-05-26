@@ -66,7 +66,7 @@ def test_vocative_particles(smart):
     assert f(u'{:이시여}', u'바다') == u'바다시여'
 
 
-def test_ita(smart):
+def test_ida(smart):
     """Cases for '이다' which is a copulative and existential verb."""
     f = smart.format
     # Do or don't inject '이'.
@@ -75,6 +75,20 @@ def test_ita(smart):
     # Merge with the following vowel as /j/.
     assert f(u'{:이에요}', u'피카츄') == u'피카츄예요'
     assert f(u'{:이에요}', u'버터플') == u'버터플이에요'
-    # Same forms.
+    # No allomorphs.
     assert f(u'{:입니다}', u'피카츄') == u'피카츄입니다'
     assert f(u'{:입니다}', u'버터플') == u'버터플입니다'
+    # Many examples.
+    assert f(u'{:였습니다}', u'버터플') == u'버터플이었습니다'
+    assert f(u'{:였습니다}', u'피카츄') == u'피카츄였습니다'
+    assert f(u'{:이었다}', u'피카츄') == u'피카츄였다'
+    assert f(u'{:이었지만}', u'피카츄') == u'피카츄였지만'
+    assert f(u'{:이지만}', u'피카츄') == u'피카츄지만'
+    assert f(u'{:이지만}', u'버터플') == u'버터플이지만'
+    assert f(u'{:다}', u'피카츄') == u'피카츄다'
+    assert f(u'{:다}', u'버터플') == u'버터플이다'
+    assert f(u'{:이에요}', u'피카츄') == u'피카츄예요'
+    assert f(u'{:이에요}', u'버터플') == u'버터플이에요'
+    assert f(u'{:고}', u'피카츄') == u'피카츄고'
+    assert f(u'{:고}', u'버터플') == u'버터플이고'
+    assert f(u'{:고}', u'리자몽') == u'리자몽이고'
