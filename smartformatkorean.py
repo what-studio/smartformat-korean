@@ -12,6 +12,7 @@
 import functools
 import re
 
+from bidict import bidict
 from six import PY2, with_metaclass
 from smartformat import ext
 
@@ -70,6 +71,12 @@ def join_phonemes(*args):
     return unichr(FIRST_HANGUL_OFFSET + offset)
 
 
+def pick_final(letter):
+    __, __, final = split_phonemes(letter, initial=False,
+                                   vowel=False, final=True)
+    return final
+
+
 def combine_forms(form1, form2):
     """Generates a general combination form for Korean particles."""
     return u'%s(%s)' % (form1, form2)
@@ -90,8 +97,7 @@ class Particle(object):
         """Selects an allomorphic form for the given word."""
         word = ENDING_BRACKET_PATTERN.sub(u'', word)
         try:
-            __, __, final = split_phonemes(word[-1], initial=False,
-                                           vowel=False, final=True)
+            final = pick_final(word[-1])
         except ValueError:
             return self.default
         else:
@@ -156,14 +162,15 @@ class Ida(SpecialParticle):
     form2 = u''
     default = u'(이)'
 
+    j_injections = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
+
     def normalize_verb(self, verb):
         """Normalizes a verb by removing initial "이" or "(이)"s."""
         return re.sub(u'^이|\(이\)', u'', verb)
 
     def __call__(self, word, verb):
         try:
-            __, __, final = split_phonemes(word[-1], initial=False,
-                                           vowel=False, final=True)
+            final = pick_final(word[-1])
         except ValueError:
             return verb
         word = ENDING_BRACKET_PATTERN.sub(u'', word)
@@ -173,32 +180,17 @@ class Ida(SpecialParticle):
             if next_vowel == u'ㅣ' and next_final != u'ㅈ':
                 # Verb starts with "이" but has a final except "ㅈ".
                 return verb
-            from bidict import bidict
-            j_injecting_vowels = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
-            if next_vowel in j_injecting_vowels:
-                # Verb starts with "어" or "에".
-                if final is None:
-                    next_vowel = j_injecting_vowels[next_vowel]
-                    next_letter = join_phonemes(u'ㅇ', next_vowel, next_final)
-                    return next_letter + verb[1:]
-                else:
-                    return u'이' + verb
-            if next_vowel in j_injecting_vowels.inv:
-                if final is not None:
-                    next_vowel = j_injecting_vowels.inv[next_vowel]
-                    next_letter = join_phonemes(u'ㅇ', next_vowel, next_final)
-                    return u'이' + next_letter + verb[1:]
-                else:
-                    return verb
-        try:
-            __, __, final = split_phonemes(word[-1], initial=False,
-                                           vowel=False, final=True)
-        except ValueError:
-            pass
-        else:
-            if final is not None:
-                return u'이' + verb
-        return verb
+            mapping = None
+            if final is None and next_vowel in self.j_injections:
+                # Word ends with a vowel and verb starts with "어" or "에".
+                mapping = self.j_injections
+            elif final is not None and next_vowel in self.j_injections.inv:
+                # Word ends with a consonant and verb starts with "여" or "예".
+                mapping = self.j_injections.inv
+            if mapping is not None:
+                next_vowel = mapping[next_vowel]
+                verb = join_phonemes(u'ㅇ', next_vowel, next_final) + verb[1:]
+        return verb if final is None else u'이' + verb
 
 
 #: Allomorphic Korean particles.
