@@ -177,15 +177,17 @@ class Ida(SpecialParticle):
         verb = self.normalize_verb(verb)
         next_initial, next_vowel, next_final = split_phonemes(verb[0])
         if next_initial == u'ㅇ':
-            if next_vowel == u'ㅣ' and next_final != u'ㅈ':
-                # Verb starts with "이" but has a final except "ㅈ".
+            if next_vowel == u'ㅣ':
+                # No allomorphs when a verb starts with "이" and has a final.
                 return verb
             mapping = None
             if final is None and next_vowel in self.j_injections:
-                # Word ends with a vowel and verb starts with "어" or "에".
+                # Squeeze "이어" or "이에" to "여" or "예"
+                # after a word which ends with a vowel.
                 mapping = self.j_injections
             elif final is not None and next_vowel in self.j_injections.inv:
-                # Word ends with a consonant and verb starts with "여" or "예".
+                # Lengthen "여" or "예" to "이어" or "이에"
+                # after a word which ends with a consonant.
                 mapping = self.j_injections.inv
             if mapping is not None:
                 next_vowel = mapping[next_vowel]

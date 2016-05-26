@@ -85,6 +85,8 @@ def test_ida(smart):
     assert f(u'{:이었지만}', u'피카츄') == u'피카츄였지만'
     assert f(u'{:이지만}', u'피카츄') == u'피카츄지만'
     assert f(u'{:이지만}', u'버터플') == u'버터플이지만'
+    assert f(u'{:지만}', u'피카츄') == u'피카츄지만'
+    assert f(u'{:지만}', u'버터플') == u'버터플이지만'
     assert f(u'{:다}', u'피카츄') == u'피카츄다'
     assert f(u'{:다}', u'버터플') == u'버터플이다'
     assert f(u'{:이에요}', u'피카츄') == u'피카츄예요'
