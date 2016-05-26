@@ -83,12 +83,17 @@ class ParticleRieulSpecialized(Particle):
 
 #: Supported Korean particles.
 PARTICLES = [
+    # Simple allomorphic rule.
     Particle(u'은', u'는'),
     Particle(u'이', u'가'),
     Particle(u'을', u'를'),
     Particle(u'과', u'와'),
-    Particle(u'아', u'야'),
+    # Except after 'ㄹ'.
     ParticleRieulSpecialized(u'으로', u'로', u'(으)로'),
+    # Vocative particles.
+    Particle(u'아', u'야'),
+    Particle(u'이여', u'여', u'(이)여'),
+    Particle(u'이시여', u'시여', u'(이)시여'),
 ]
 
 

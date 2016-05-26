@@ -44,7 +44,7 @@ def test_braket(smart):
     assert f(u'{:ko(으로):{}}', u'피카(?)츄') == u'피카(?)츄로'
 
 
-def test_ho(smart):
+def test_vocative_particles(smart):
     f = smart.format
     assert f(u'{:야}', u'친구') == u'친구야'
     assert f(u'{:야}', u'사랑') == u'사랑아'
@@ -52,3 +52,17 @@ def test_ho(smart):
     assert f(u'{:여}', u'친구') == u'친구여'
     assert f(u'{:여}', u'사랑') == u'사랑이여'
     assert f(u'{:이시여}', u'하늘') == u'하늘이시여'
+    assert f(u'{:이시여}', u'바다') == u'바다시여'
+
+
+def test_i(smart):
+    f = smart.format
+    # Do or don't inject '이'.
+    assert f(u'{:이다}', u'피카츄') == u'피카츄다'
+    assert f(u'{:이다}', u'버터플') == u'버터플이다'
+    # Merge with the following vowel as /j/.
+    assert f(u'{:이에요}', u'피카츄') == u'피카츄예요'
+    assert f(u'{:이에요}', u'버터플') == u'버터플이에요'
+    # Same forms.
+    assert f(u'{:입니다}', u'피카츄') == u'피카츄입니다'
+    assert f(u'{:입니다}', u'버터플') == u'버터플입니다'
