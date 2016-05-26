@@ -23,7 +23,7 @@ ENDING_BRACKET_PATTERN = re.compile(r'\(.*?\)$')
 
 
 def combine_forms(form1, form2):
-    """Generates a general combination form for Korean post positions."""
+    """Generates a general combination form for Korean particles."""
     return u'%s(%s)' % (form1, form2)
 
 
@@ -41,8 +41,8 @@ def pick_final_jongseong(word):
         raise ValueError('Not ends with Hangul: %r' % word)
 
 
-class PostPosition(object):
-    """Represents a Korean post position as known as "조사" in Korean."""
+class Particle(object):
+    """Represents a Korean particle as known as "조사" in Korean."""
 
     def __init__(self, form1, form2, default=None):
         self.form1 = form1
@@ -72,8 +72,8 @@ class PostPosition(object):
         return iter([self.form1, self.form2, self.default])
 
 
-class PostPositionRieulSpecialized(PostPosition):
-    """The special case of Korean post positions after jongseong Rieul such as
+class ParticleRieulSpecialized(Particle):
+    """The special case of Korean particle after jongseong Rieul such as
     "으로".
     """
 
@@ -81,29 +81,29 @@ class PostPositionRieulSpecialized(PostPosition):
         return FORM2 if jongseong is None or jongseong == u'ㄹ' else FORM1
 
 
-#: Supported Korean post positions.
-POST_POSITIONS = [
-    PostPosition(u'은', u'는'),
-    PostPosition(u'이', u'가'),
-    PostPosition(u'을', u'를'),
-    PostPosition(u'과', u'와'),
-    PostPosition(u'아', u'야'),
-    PostPositionRieulSpecialized(u'으로', u'로', u'(으)로'),
+#: Supported Korean particles.
+PARTICLES = [
+    Particle(u'은', u'는'),
+    Particle(u'이', u'가'),
+    Particle(u'을', u'를'),
+    Particle(u'과', u'와'),
+    Particle(u'아', u'야'),
+    ParticleRieulSpecialized(u'으로', u'로', u'(으)로'),
 ]
 
 
-# Index post positions by their forms.
-_post_position_index = {}
-for pp in POST_POSITIONS:
-    for form in pp:
-        if form in _post_position_index:
+# Index particles by their forms.
+_particle_index = {}
+for p in PARTICLES:
+    for form in p:
+        if form in _particle_index:
             raise KeyError('Form %r duplicated' % form)
-        _post_position_index[form] = pp
+        _particle_index[form] = p
 
 
 @ext(['ko', ''], pass_formatter=True)
 def ko(formatter, value, name, option, format):
-    """Chooses different allomorphic forms for Korean post positions.
+    """Chooses different allomorphic forms for Korean particles.
 
     Implicit Spec: `{:[-]post_position}`
     Explicit Spec: `{:ko(post_position):item}`
@@ -123,10 +123,10 @@ def ko(formatter, value, name, option, format):
         else:
             option, format = format, u'{}'
     try:
-        pp = _post_position_index[option]
+        pp = _particle_index[option]
     except KeyError:
         if not name:
             # Just skip to handle when selected implicitly.
             return
-        raise ValueError('Invalid Korean post position: %r' % option)
+        raise ValueError('Unknown Korean particle: %r' % option)
     return formatter.format(format, value) + pp(value)

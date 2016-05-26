@@ -42,3 +42,13 @@ def test_braket(smart):
     f = smart.format
     assert f(u'{:ko(으로):{}}', u'피카츄(Lv.25)') == u'피카츄(Lv.25)로'
     assert f(u'{:ko(으로):{}}', u'피카(?)츄') == u'피카(?)츄로'
+
+
+def test_ho(smart):
+    f = smart.format
+    assert f(u'{:야}', u'친구') == u'친구야'
+    assert f(u'{:야}', u'사랑') == u'사랑아'
+    assert f(u'{:아}', u'사랑') == u'사랑아'
+    assert f(u'{:여}', u'친구') == u'친구여'
+    assert f(u'{:여}', u'사랑') == u'사랑이여'
+    assert f(u'{:이시여}', u'하늘') == u'하늘이시여'
