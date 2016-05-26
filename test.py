@@ -2,7 +2,7 @@
 import pytest
 from smartformat import SmartFormatter
 
-from smartformatkorean import ko, split_phonemes
+from smartformatkorean import join_phonemes, ko, split_phonemes
 
 
 @pytest.fixture
@@ -21,6 +21,16 @@ def test_split_phonemes():
         split_phonemes(u'X')
     with pytest.raises(ValueError):
         split_phonemes(u'섭섭')
+
+
+def test_join_phonemes():
+    assert join_phonemes(u'ㅅ', u'ㅓ', u'ㅂ') == u'섭'
+    assert join_phonemes((u'ㅅ', u'ㅓ', u'ㅂ')) == u'섭'
+    assert join_phonemes(u'ㅊ', u'ㅠ') == u'츄'
+    assert join_phonemes(u'ㅊ', u'ㅠ', None) == u'츄'
+    assert join_phonemes((u'ㅊ', u'ㅠ')) == u'츄'
+    with pytest.raises(TypeError):
+        join_phonemes(u'ㄷ', u'ㅏ', u'ㄹ', u'ㄱ')
 
 
 def test_explicit(smart):
@@ -78,6 +88,11 @@ def test_ida(smart):
     # No allomorphs.
     assert f(u'{:입니다}', u'피카츄') == u'피카츄입니다'
     assert f(u'{:입니다}', u'버터플') == u'버터플입니다'
+    # Give up to select an allomorph.
+    assert f(u'{:이다}', u'God') == u'God(이)다'
+    assert f(u'{:이에요}', u'God') == u'God(이)에요'
+    assert f(u'{:입니다}', u'God') == u'God입니다'
+    assert f(u'{:였습니다}', u'God') == u'God(이)었습니다'
     # Many examples.
     assert f(u'{:였습니다}', u'버터플') == u'버터플이었습니다'
     assert f(u'{:였습니다}', u'피카츄') == u'피카츄였습니다'

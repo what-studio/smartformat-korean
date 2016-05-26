@@ -57,13 +57,17 @@ def split_phonemes(letter, initial=True, vowel=True, final=True):
 
 
 def join_phonemes(*args):
+    """Joins a Hangul letter from Korean phonemes."""
     # Normalize arguments as initial, vowel, final.
     if len(args) == 1:
         # tuple of (initial, vowel[, final])
         args = args[0]
     if len(args) == 2:
         args += (None,)
-    initial, vowel, final = args
+    try:
+        initial, vowel, final = args
+    except ValueError:
+        raise TypeError('join_phonemes() takes at most 3 arguments')
     offset = (
         (INITIALS.index(initial) * NUM_VOWELS + VOWELS.index(vowel)) *
         NUM_FINALS + FINALS.index(final)
@@ -72,14 +76,10 @@ def join_phonemes(*args):
 
 
 def pick_final(letter):
-    __, __, final = split_phonemes(letter, initial=False,
-                                   vowel=False, final=True)
+    """Picks only a final Hangul consonant from a Hangul letter."""
+    __, __, final = \
+        split_phonemes(letter, initial=False, vowel=False, final=True)
     return final
-
-
-def combine_forms(form1, form2):
-    """Generates a general combination form for Korean particles."""
-    return u'%s(%s)' % (form1, form2)
 
 
 class Particle(object):
@@ -89,7 +89,7 @@ class Particle(object):
         self.form1 = form1
         self.form2 = form2
         if default is None:
-            self.default = combine_forms(form1, form2)
+            self.default = self.combine_forms(form1, form2)
         else:
             self.default = default
 
@@ -116,6 +116,11 @@ class Particle(object):
 
     def __repr__(self):
         return '<Particle: ' + (repr if PY2 else str)(self.default) + '>'
+
+    @staticmethod
+    def combine_forms(form1, form2):
+        """Generates a general combination form for Korean particles."""
+        return u'%s(%s)' % (form1, form2)
 
 
 class SpecialParticleMeta(type):
@@ -163,18 +168,19 @@ class Ida(SpecialParticle):
     default = u'(이)'
 
     j_injections = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
+    allomorph = NotImplemented  # This method is not used.
 
     def normalize_verb(self, verb):
         """Normalizes a verb by removing initial "이" or "(이)"s."""
         return re.sub(u'^이|\(이\)', u'', verb)
 
     def __call__(self, word, verb):
+        word = ENDING_BRACKET_PATTERN.sub(u'', word)
+        verb = self.normalize_verb(verb)
         try:
             final = pick_final(word[-1])
         except ValueError:
-            return verb
-        word = ENDING_BRACKET_PATTERN.sub(u'', word)
-        verb = self.normalize_verb(verb)
+            final = u''
         next_initial, next_vowel, next_final = split_phonemes(verb[0])
         if next_initial == u'ㅇ':
             if next_vowel == u'ㅣ':
@@ -192,7 +198,13 @@ class Ida(SpecialParticle):
             if mapping is not None:
                 next_vowel = mapping[next_vowel]
                 verb = join_phonemes(u'ㅇ', next_vowel, next_final) + verb[1:]
-        return verb if final is None else u'이' + verb
+        # Select an allomorph.
+        if final is None:
+            return verb
+        elif final == u'':
+            return u'(이)' + verb
+        else:
+            return u'이' + verb
 
 
 #: Allomorphic Korean particles.
