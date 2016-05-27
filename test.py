@@ -16,7 +16,7 @@ def test_split_phonemes():
     assert split_phonemes(u'쏚') == (u'ㅆ', u'ㅗ', u'ㄲ')
     assert split_phonemes(u'섭') == (u'ㅅ', u'ㅓ', u'ㅂ')
     assert split_phonemes(u'투') == (u'ㅌ', u'ㅜ', u'')
-    assert split_phonemes(u'투', initial=False) == (None, u'ㅜ', u'')
+    assert split_phonemes(u'투', onset=False) == (None, u'ㅜ', u'')
     with pytest.raises(ValueError):
         split_phonemes(u'X')
     with pytest.raises(ValueError):
@@ -63,16 +63,21 @@ def test_euro(smart):
     assert f(u'{:ko(로서):{}}', u'피카츄') == u'피카츄로서'
     assert f(u'{:ko(로서):{}}', u'버터플') == u'버터플로서'
     assert f(u'{:ko(로서):{}}', u'고라파덕') == u'고라파덕으로서'
+    assert f(u'{:ko(로써):{}}', u'피카츄') == u'피카츄로써'
+    assert f(u'{:ko(로써):{}}', u'버터플') == u'버터플로써'
+    assert f(u'{:ko(로써):{}}', u'고라파덕') == u'고라파덕으로써'
     assert f(u'{:ko(로부터):{}}', u'피카츄') == u'피카츄로부터'
     assert f(u'{:ko(로부터):{}}', u'버터플') == u'버터플로부터'
     assert f(u'{:ko(로부터):{}}', u'고라파덕') == u'고라파덕으로부터'
+    assert f(u'{:ko(로부터도):{}}', u'고라파덕') == u'고라파덕으로부터도'
+    assert f(u'{:ko((으)로부터의):{}} 편지', u'그녀') == u'그녀로부터의 편지'
 
 
 def test_exceptions(smart):
     f = smart.format
-    # empty
+    # Empty.
     assert f(u'{:를}', u'') == u'을(를)'
-    # initial only
+    # Onsets only.
     assert f(u'{:를}', u'ㅋㅋㅋ') == u'ㅋㅋㅋ을(를)'
 
 
@@ -82,6 +87,7 @@ def test_blind(smart):
     assert f(u'{:ko(으로):{}}', u'피카(?)츄') == u'피카(?)츄로'
     assert f(u'{:ko(으로):{}}', u'헬로월드!') == u'헬로월드!로'
     assert f(u'{:ko(으로):{}}', u'?_?') == u'?_?(으)로'
+    assert f(u'{:가}?', u'임창정,,,') == u'임창정,,,이?'
 
 
 def test_vocative_particles(smart):
@@ -128,3 +134,7 @@ def test_ida(smart):
     assert f(u'{:고}', u'피카츄') == u'피카츄고'
     assert f(u'{:고}', u'버터플') == u'버터플이고'
     assert f(u'{:고}', u'리자몽') == u'리자몽이고'
+    assert f(u'{:여서}', u'피카츄') == u'피카츄여서'
+    assert f(u'{:여서}', u'버터플') == u'버터플이어서'
+    assert f(u'{:이어서}', u'피카츄') == u'피카츄여서'
+    assert f(u'{:라고라}?', u'버터플') == u'버터플이라고라?'
