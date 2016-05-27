@@ -52,6 +52,8 @@ class Particle(object):
 
     """
 
+    __slots__ = ('form1', 'form2', 'default')
+
     def __init__(self, form1, form2, default=None):
         self.form1 = form1
         self.form2 = form2
@@ -107,6 +109,8 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
     rule.
     """
 
+    __slots__ = ()
+
     # Concrete classes should set these strings.
     form1 = form2 = default = NotImplemented
 
@@ -126,6 +130,8 @@ class Euro(SpecialParticle):
     coda Rieul.  "으로" can be extended with some of suffixes such as
     "으로서", "으로부터".
     """
+
+    __slots__ = ()
 
     form1 = u'으'
     form2 = u''
@@ -154,6 +160,8 @@ class Ida(SpecialParticle):
     """"이다" is a verbal prticle.  Like other Korean verbs, it is also
     fusional.
     """
+
+    __slots__ = ()
 
     form1 = u'이'
     form2 = u''
