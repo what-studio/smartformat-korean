@@ -1,78 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-   smartformat_korean
-   ~~~~~~~~~~~~~~~~~~
+   smartformat.ext.korean.particles
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   SmartFormat extensions for Korean.
+   Models for Korean allomorphic particles.
 
    :copyright: (c) 2016 by What! Studio
    :license: BSD, see LICENSE for more details.
 
 """
-import functools
 import re
 
 from bidict import bidict
 from six import PY2, with_metaclass
-from smartformat import ext
+
+from .hangul import join_phonemes, split_phonemes
 
 
-# Korean phonemes as known as "자소".
-INITIALS = list(u'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ')
-VOWELS = list(u'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ')
-FINALS = [None]
-FINALS.extend(u'ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ')
-
-# Lengths of the phonemes.
-NUM_INITIALS = len(INITIALS)
-NUM_VOWELS = len(VOWELS)
-NUM_FINALS = len(FINALS)
-
-FIRST_HANGUL_OFFSET = ord(u'가')
-ENDING_BRACKET_PATTERN = re.compile(r'\(.*?\)$')
+__all__ = ['Particle', 'SpecialParticle', 'Euro', 'Ida']
 
 
-def is_hangul(letter):
-    return u'가' <= letter <= u'힣'
-
-
-def split_phonemes(letter, initial=True, vowel=True, final=True):
-    """Splits Korean phonemes as known as "자소" from a Hangul letter.
-
-    :returns: (initial, vowel, final)
-    :raises ValueError: `letter` is not a Hangul single letter.
-
-    """
-    if len(letter) != 1 or not is_hangul(letter):
-        raise ValueError('Not Hangul letter: %r' % letter)
-    offset = ord(letter) - FIRST_HANGUL_OFFSET
-    phonemes = [None] * 3
-    if initial:
-        phonemes[0] = INITIALS[offset / (NUM_VOWELS * NUM_FINALS)]
-    if vowel:
-        phonemes[1] = VOWELS[(offset / NUM_FINALS) % NUM_VOWELS]
-    if final:
-        phonemes[2] = FINALS[offset % NUM_FINALS]
-    return tuple(phonemes)
-
-
-def join_phonemes(*args):
-    """Joins a Hangul letter from Korean phonemes."""
-    # Normalize arguments as initial, vowel, final.
-    if len(args) == 1:
-        # tuple of (initial, vowel[, final])
-        args = args[0]
-    if len(args) == 2:
-        args += (None,)
-    try:
-        initial, vowel, final = args
-    except ValueError:
-        raise TypeError('join_phonemes() takes at most 3 arguments')
-    offset = (
-        (INITIALS.index(initial) * NUM_VOWELS + VOWELS.index(vowel)) *
-        NUM_FINALS + FINALS.index(final)
-    )
-    return unichr(FIRST_HANGUL_OFFSET + offset)
+#: Matches to string should be ignored when selecting an allomorph.
+BLIND_PATTERN = re.compile(r'\(.*?\)$')
 
 
 def pick_final(letter):
@@ -83,7 +32,13 @@ def pick_final(letter):
 
 
 class Particle(object):
-    """Represents a Korean particle as known as "조사" in Korean."""
+    """Represents a Korean allomorphic particle as known as "조사".
+
+    This also implements the general allomorphic rule for most common
+    particles.  If some particle has a exceptional rule, inherit
+    :class:`SpecialParticle` instead.
+
+    """
 
     def __init__(self, form1, form2, default=None):
         self.form1 = form1
@@ -95,7 +50,7 @@ class Particle(object):
 
     def __call__(self, word):
         """Selects an allomorphic form for the given word."""
-        word = ENDING_BRACKET_PATTERN.sub(u'', word)
+        word = BLIND_PATTERN.sub(u'', word)
         try:
             final = pick_final(word[-1])
         except ValueError:
@@ -175,7 +130,7 @@ class Ida(SpecialParticle):
         return re.sub(u'^이|\(이\)', u'', verb)
 
     def __call__(self, word, verb):
-        word = ENDING_BRACKET_PATTERN.sub(u'', word)
+        word = BLIND_PATTERN.sub(u'', word)
         verb = self.normalize_verb(verb)
         try:
             final = pick_final(word[-1])
@@ -207,56 +162,6 @@ class Ida(SpecialParticle):
             return u'이' + verb
 
 
-#: Allomorphic Korean particles.
-PARTICLES = [
-    # Simple allomorphic rule.
-    Particle(u'은', u'는'),
-    Particle(u'이', u'가'),
-    Particle(u'을', u'를'),
-    Particle(u'과', u'와'),
-    # Vocative particles.
-    Particle(u'아', u'야'),
-    Particle(u'이여', u'여', u'(이)여'),
-    Particle(u'이시여', u'시여', u'(이)시여'),
-    # Special particles.
-    Euro,
-]
-
-
-# Index particles by their forms.
-_particle_index = {}
-for p in PARTICLES:
-    for form in p:
-        if form in _particle_index:
-            raise KeyError('Form %r duplicated' % form)
-        _particle_index[form] = p
-
-
-@ext(['ko', ''], pass_formatter=True)
-def ko(formatter, value, name, option, format):
-    """Chooses different allomorphic forms for Korean particles.
-
-    Implicit Spec: `{:[-]post_position}`
-    Explicit Spec: `{:ko(post_position):item}`
-
-    Example::
-
-       >>> smart.format(u'There {num:is an item|are {} items}.', num=1}
-       There is an item.
-       >>> smart.format(u'There {num:is an item|are {} items}.', num=10}
-       There are 10 items.
-
-    """
-    if not name:
-        if format.startswith(u'-'):
-            __, __, option = format.partition(u'-')
-            format = u''
-        else:
-            option, format = format, u'{}'
-        if not option or not is_hangul(option[0]):
-            return
-    try:
-        particle = _particle_index[option]
-    except KeyError:
-        particle = functools.partial(Ida, verb=option)
-    return formatter.format(format, value) + particle(value)
+if not PY2:
+    locals().update({u'으로': Euro, u'이다': Ida})
+    __all__.extend([u'으로', u'이다'])
