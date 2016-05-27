@@ -40,8 +40,12 @@ $ pip install smartformat-korean
 
 ## 만든이와 사용권
 
-넥슨 왓 스튜디오의 [이흥섭][sublee]과 [김찬웅][kexplo]이 만들었고 BSD 라이센스를
+[넥슨][nexon] [왓 스튜디오][what-studio]의 [이흥섭][sublee]과
+[김찬웅][kexplo]이 만들었고 [제3조항을 포함하는 BSD 허가서][bsd-3-clause]를
 채택했습니다.
 
+[nexon]: http://nexon.com/
+[what-studio]: https://github.com/what-studio
 [sublee]: http://subl.ee/
 [kexplo]: http://chanwoong.kim/
+[bsd-3-clause]: http://opensource.org/licenses/BSD-3-Clause
