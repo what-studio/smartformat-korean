@@ -54,10 +54,12 @@ def ko(formatter, value, name, option, format):
 
     Example::
 
-       >>> smart.format(u'There {num:is an item|are {} items}.', num=1}
-       There is an item.
-       >>> smart.format(u'There {num:is an item|are {} items}.', num=10}
-       There are 10 items.
+       >>> smart.format(u'{pokemon:은} {skill:을} 시전했다!',
+       ...              pokemon=u'피카츄', skill=u'전광석화')
+       피카츄는 전광석화를 시전했다!
+       >>> smart.format(u'{subj:는} {obj:다}.',
+       ...              subj=u'대한민국', obj=u'민주공화국')
+       대한민국은 민주공화국이다.
 
     """
     if not name:
@@ -66,11 +68,14 @@ def ko(formatter, value, name, option, format):
             format = u''
         else:
             option, format = format, u'{}'
-        if not option or not is_hangul(option[0]):
+        if not option or not all(is_hangul(l) for l in option):
+            # All option letters have to be Hangul
+            # to use this extension implicitly.
             return
     try:
+        # Choose a known particle.
         particle = _particle_index[option]
     except KeyError:
-        # "이다" is the default particle.
+        # Or "이다" by default.
         particle = functools.partial(Ida, verb=option)
     return formatter.format(format, value) + particle(value)
