@@ -6,10 +6,9 @@ from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
 
 
 @pytest.fixture
-def smart():
-    formatter = SmartFormatter()
-    formatter.register([ko])
-    return formatter
+def f():
+    smart = SmartFormatter('ko_KR', [ko])
+    return smart.format
 
 
 def test_split_phonemes():
@@ -33,8 +32,7 @@ def test_join_phonemes():
         join_phonemes(u'ㄷ', u'ㅏ', u'ㄹ', u'ㄱ')
 
 
-def test_explicit(smart):
-    f = smart.format
+def test_explicit(f):
     assert f(u'{:ko(아):{}} 안녕', u'피카츄') == u'피카츄야 안녕'
     assert f(u'{:ko(아):{}} 안녕', u'버터플') == u'버터플아 안녕'
     assert f(u'{:ko(아):{}} 안녕', u'고라파덕') == u'고라파덕아 안녕'
@@ -42,8 +40,7 @@ def test_explicit(smart):
     assert f(u'{:ko(을):}', u'수박') == u'을'
 
 
-def test_implicit(smart):
-    f = smart.format
+def test_implicit(f):
     assert f(u'{:아} 안녕', u'피카츄') == u'피카츄야 안녕'
     assert f(u'{:아} 안녕', u'버터플') == u'버터플아 안녕'
     assert f(u'{:아} 안녕', u'고라파덕') == u'고라파덕아 안녕'
@@ -54,8 +51,7 @@ def test_implicit(smart):
     assert f(u'{:을!}', u'서태지') == u'서태지'
 
 
-def test_euro(smart):
-    f = smart.format
+def test_euro(f):
     assert f(u'{:ko(으로):{}}', u'피카츄') == u'피카츄로'
     assert f(u'{:ko(으로):{}}', u'버터플') == u'버터플로'
     assert f(u'{:ko(으로):{}}', u'고라파덕') == u'고라파덕으로'
@@ -73,16 +69,14 @@ def test_euro(smart):
     assert f(u'{:ko((으)로부터의):{}} 편지', u'그녀') == u'그녀로부터의 편지'
 
 
-def test_exceptions(smart):
-    f = smart.format
+def test_exceptions(f):
     # Empty.
     assert f(u'{:를}', u'') == u'을(를)'
     # Onsets only.
     assert f(u'{:를}', u'ㅋㅋㅋ') == u'ㅋㅋㅋ을(를)'
 
 
-def test_blind(smart):
-    f = smart.format
+def test_blind(f):
     assert f(u'{:ko(으로):{}}', u'피카츄(Lv.25)') == u'피카츄(Lv.25)로'
     assert f(u'{:ko(으로):{}}', u'피카(?)츄') == u'피카(?)츄로'
     assert f(u'{:ko(으로):{}}', u'헬로월드!') == u'헬로월드!로'
@@ -91,8 +85,7 @@ def test_blind(smart):
     assert f(u'{:을} 샀다.', u'<듀랑고>') == u'<듀랑고>를 샀다.'
 
 
-def test_vocative_particles(smart):
-    f = smart.format
+def test_vocative_particles(f):
     assert f(u'{:야}', u'친구') == u'친구야'
     assert f(u'{:야}', u'사랑') == u'사랑아'
     assert f(u'{:아}', u'사랑') == u'사랑아'
@@ -102,9 +95,8 @@ def test_vocative_particles(smart):
     assert f(u'{:이시여}', u'바다') == u'바다시여'
 
 
-def test_ida(smart):
+def test_ida(f):
     """Cases for '이다' which is a copulative and existential verb."""
-    f = smart.format
     # Do or don't inject '이'.
     assert f(u'{:이다}', u'피카츄') == u'피카츄다'
     assert f(u'{:이다}', u'버터플') == u'버터플이다'
@@ -141,3 +133,9 @@ def test_ida(smart):
     assert f(u'{:라고라}?', u'버터플') == u'버터플이라고라?'
     assert f(u'{:든지}', u'버터플') == u'버터플이든지'
     assert f(u'{:던가}?', u'버터플') == u'버터플이던가?'
+
+
+@pytest.mark.xfail
+def test_invariant_particles(f):
+    assert f(u'{:도}', u'피카츄') == u'피카츄도'
+    assert f(u'{:도}', u'고라파덕') == u'고라파덕도'
