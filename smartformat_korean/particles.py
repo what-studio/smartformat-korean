@@ -45,7 +45,7 @@ def pick_coda(letter):
 
 
 def combine_tolerant_forms(form1, form2):
-    """Generates tolerant particle forms::
+    """Generates all reasonable tolerant particle forms::
 
     >>> set(combine_tolerant_forms(u'이', u'가'))
     set([u'이(가)', u'(이)가', u'가(이)', u'(가)이'])
