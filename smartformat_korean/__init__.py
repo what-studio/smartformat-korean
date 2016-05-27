@@ -74,9 +74,9 @@ def ko(formatter, value, name, option, format):
         # Choose a known particle.
         particle = _particle_index[option]
     except KeyError:
+        # Choose a special particle which doesn't return ``None``.
         for particle in SPECIAL_PARTICLES:
             suffix = particle(word=value, form=option)
-            print particle, option, suffix
             if suffix is not None:
                 break
         else:
