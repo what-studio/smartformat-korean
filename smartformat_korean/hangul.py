@@ -9,6 +9,8 @@
    :license: BSD, see LICENSE for more details.
 
 """
+from six import unichr
+
 
 __all__ = ['is_hangul', 'join_phonemes', 'split_phonemes']
 
@@ -64,9 +66,9 @@ def split_phonemes(letter, onset=True, nucleus=True, coda=True):
     offset = ord(letter) - FIRST_HANGUL_OFFSET
     phonemes = [None] * 3
     if onset:
-        phonemes[0] = ONSETS[offset / (NUM_NUCLEUSES * NUM_CODAS)]
+        phonemes[0] = ONSETS[offset // (NUM_NUCLEUSES * NUM_CODAS)]
     if nucleus:
-        phonemes[1] = NUCLEUSES[(offset / NUM_CODAS) % NUM_NUCLEUSES]
+        phonemes[1] = NUCLEUSES[(offset // NUM_CODAS) % NUM_NUCLEUSES]
     if coda:
         phonemes[2] = CODAS[offset % NUM_CODAS]
     return tuple(phonemes)
