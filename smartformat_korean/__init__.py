@@ -66,7 +66,9 @@ def ko(formatter, value, name, option, format):
             format = u''
         else:
             option, format = format, u'{}'
-        if not option or not all(is_hangul(l) for l in option):
+        if option in _particle_index:
+            pass
+        elif not option or not all(is_hangul(l) for l in option):
             # All option letters have to be Hangul
             # to use this extension implicitly.
             return
