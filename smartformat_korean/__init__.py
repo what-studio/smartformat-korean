@@ -9,18 +9,16 @@
    :license: BSD, see LICENSE for more details.
 
 """
-import functools
-
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import Euro, Euroseo, Eurosseo, Ida, Particle
+from .particles import Euro, Ida, Particle
 
 
 __all__ = ['ko']
 
 
-#: Allomorphic Korean particles.
+#: Allomorphic Korean particles with the general rule.
 PARTICLES = [
     # Simple allomorphic rule.
     Particle(u'은', u'는'),
@@ -31,9 +29,9 @@ PARTICLES = [
     Particle(u'아', u'야'),
     Particle(u'이여', u'여', u'(이)여'),
     Particle(u'이시여', u'시여', u'(이)시여'),
-    # Special particles.
-    Euro, Euroseo, Eurosseo,
 ]
+#: Allomorphic Korean particles with special rules.
+SPECIAL_PARTICLES = [Euro, Ida]
 
 
 # Index particles by their forms.
@@ -76,6 +74,13 @@ def ko(formatter, value, name, option, format):
         # Choose a known particle.
         particle = _particle_index[option]
     except KeyError:
-        # Or "이다" by default.
-        particle = functools.partial(Ida, verb=option)
-    return formatter.format(format, value) + particle(value)
+        for particle in SPECIAL_PARTICLES:
+            suffix = particle(word=value, form=option)
+            print particle, option, suffix
+            if suffix is not None:
+                break
+        else:
+            raise ValueError('Invalid Korean particle: %r' % option)
+    else:
+        suffix = particle(word=value)
+    return formatter.format(format, value) + suffix

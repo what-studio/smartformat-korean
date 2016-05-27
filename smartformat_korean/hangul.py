@@ -16,7 +16,7 @@ __all__ = ['is_hangul', 'join_phonemes', 'split_phonemes']
 # Korean phonemes as known as "자소".
 INITIALS = list(u'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ')
 VOWELS = list(u'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ')
-FINALS = [None]
+FINALS = [u'']
 FINALS.extend(u'ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ')
 
 # Lengths of the phonemes.
@@ -39,7 +39,7 @@ def join_phonemes(*args):
         # tuple of (initial, vowel[, final])
         args = args[0]
     if len(args) == 2:
-        args += (None,)
+        args += (FINALS[0],)
     try:
         initial, vowel, final = args
     except ValueError:

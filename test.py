@@ -15,8 +15,8 @@ def smart():
 def test_split_phonemes():
     assert split_phonemes(u'쏚') == (u'ㅆ', u'ㅗ', u'ㄲ')
     assert split_phonemes(u'섭') == (u'ㅅ', u'ㅓ', u'ㅂ')
-    assert split_phonemes(u'투') == (u'ㅌ', u'ㅜ', None)
-    assert split_phonemes(u'투', initial=False) == (None, u'ㅜ', None)
+    assert split_phonemes(u'투') == (u'ㅌ', u'ㅜ', u'')
+    assert split_phonemes(u'투', initial=False) == (None, u'ㅜ', u'')
     with pytest.raises(ValueError):
         split_phonemes(u'X')
     with pytest.raises(ValueError):
@@ -27,7 +27,7 @@ def test_join_phonemes():
     assert join_phonemes(u'ㅅ', u'ㅓ', u'ㅂ') == u'섭'
     assert join_phonemes((u'ㅅ', u'ㅓ', u'ㅂ')) == u'섭'
     assert join_phonemes(u'ㅊ', u'ㅠ') == u'츄'
-    assert join_phonemes(u'ㅊ', u'ㅠ', None) == u'츄'
+    assert join_phonemes(u'ㅊ', u'ㅠ', u'') == u'츄'
     assert join_phonemes((u'ㅊ', u'ㅠ')) == u'츄'
     with pytest.raises(TypeError):
         join_phonemes(u'ㄷ', u'ㅏ', u'ㄹ', u'ㄱ')
@@ -63,6 +63,9 @@ def test_euro(smart):
     assert f(u'{:ko(로서):{}}', u'피카츄') == u'피카츄로서'
     assert f(u'{:ko(로서):{}}', u'버터플') == u'버터플로서'
     assert f(u'{:ko(로서):{}}', u'고라파덕') == u'고라파덕으로서'
+    assert f(u'{:ko(로부터):{}}', u'피카츄') == u'피카츄로부터'
+    assert f(u'{:ko(로부터):{}}', u'버터플') == u'버터플로부터'
+    assert f(u'{:ko(로부터):{}}', u'고라파덕') == u'고라파덕으로부터'
 
 
 def test_exceptions(smart):
