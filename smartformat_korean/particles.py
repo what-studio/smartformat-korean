@@ -25,22 +25,22 @@ BLIND_PATTERN = re.compile(r'''
     (?:
         \( .*? \)
     |
-        [!@#$%^&*?]+
+        [!@#$%^&*?,.:;'"\[\]{}<>]+
     )$
 ''', re.VERBOSE)
 
 
-def pick_final(letter):
-    """Picks only a final Hangul consonant from a Hangul letter.  It returns
-    ``None`` if the given letter is not Hangul.
+def pick_coda(letter):
+    """Picks only a coda from a Hangul letter.  It returns ``None`` if the
+    given letter is not Hangul.
     """
     try:
-        __, __, final = \
-            split_phonemes(letter, initial=False, vowel=False, final=True)
+        __, __, coda = \
+            split_phonemes(letter, onset=False, nucleus=False, coda=True)
     except ValueError:
         return None
     else:
-        return final
+        return coda
 
 
 class Particle(object):
@@ -63,18 +63,18 @@ class Particle(object):
     def __call__(self, word, *args, **kwargs):
         """Selects an allomorphic form for the given word."""
         word = BLIND_PATTERN.sub(u'', word)
-        final = pick_final(word[-1]) if word else None
-        return self.allomorph(final, *args, **kwargs)
+        coda = pick_coda(word[-1]) if word else None
+        return self.allomorph(coda, *args, **kwargs)
 
     def __iter__(self):
         """Iterates for all allomorphic forms."""
         return iter([self.default, self.form1, self.form2])
 
-    def allomorph(self, final):
+    def allomorph(self, coda):
         """Determines one of allomorphic forms based on a Hangul jongseung."""
-        if final is None:
+        if coda is None:
             return self.default
-        elif final:
+        elif coda:
             return self.form1
         else:
             return self.form2
@@ -87,7 +87,7 @@ class Particle(object):
 
     @staticmethod
     def combine_forms(form1, form2):
-        """defines a general combination form for Korean particles."""
+        """Defines a general combination form for Korean particles."""
         return u'%s(%s)' % (form1, form2)
 
 
@@ -123,7 +123,7 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
 
 class Euro(SpecialParticle):
     """Particles starting with "으로" have a special allomorphic rule after
-    final Rieul.  "으로" can be extended with some of suffixes such as
+    coda Rieul.  "으로" can be extended with some of suffixes such as
     "으로서", "으로부터".
     """
 
@@ -134,16 +134,16 @@ class Euro(SpecialParticle):
     #: Matches with initial "으" or "(으)" before "로".
     PREFIX_PATTERN = re.compile(u'^(으|\(으\))?로')
 
-    def allomorph(self, final, form):
+    def allomorph(self, coda, form):
         m = self.PREFIX_PATTERN.match(form)
         if not m:
             # The given form doesn't start with "(으)로".  Don't handle.
             return
         # Remove initial "으" or "(으)" to make a suffix.
         suffix = form[max(0, m.end(1)):]
-        if final is None:
+        if coda is None:
             prefix = self.default
-        elif final and final != u'ㄹ':
+        elif coda and coda != u'ㄹ':
             prefix = self.form1
         else:
             prefix = self.form2
@@ -165,29 +165,24 @@ class Ida(SpecialParticle):
     #: The mapping for vowels which should be transformed by /j/ injection.
     J_INJECTIONS = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
 
-    def allomorph(self, final, form):
-        verb = self.I_PATTERN.sub(u'', form)
-        next_initial, next_vowel, next_final = split_phonemes(verb[0])
-        if next_initial == u'ㅇ':
-            if next_vowel == u'ㅣ':
-                # No allomorphs when a verb starts with "이" and has a final.
-                return verb
+    def allomorph(self, coda, form):
+        suffix = self.I_PATTERN.sub(u'', form)
+        next_onset, next_nucleus, next_coda = split_phonemes(suffix[0])
+        if next_onset == u'ㅇ':
+            if next_nucleus == u'ㅣ':
+                # No allomorphs when a form starts with "이" and has a coda.
+                return suffix
             mapping = None
-            if final == u'' and next_vowel in self.J_INJECTIONS:
+            if coda == u'' and next_nucleus in self.J_INJECTIONS:
                 # Squeeze "이어" or "이에" to "여" or "예"
-                # after a word which ends with a vowel.
+                # after a word which ends with a nucleus.
                 mapping = self.J_INJECTIONS
-            elif final != u'' and next_vowel in self.J_INJECTIONS.inv:
+            elif coda != u'' and next_nucleus in self.J_INJECTIONS.inv:
                 # Lengthen "여" or "예" to "이어" or "이에"
                 # after a word which ends with a consonant.
                 mapping = self.J_INJECTIONS.inv
             if mapping is not None:
-                next_vowel = mapping[next_vowel]
-                verb = join_phonemes(u'ㅇ', next_vowel, next_final) + verb[1:]
-        # Select an allomorph.
-        if final is None:
-            return u'(이)' + verb
-        elif final:
-            return u'이' + verb
-        else:
-            return verb
+                next_nucleus = mapping[next_nucleus]
+                next_letter = join_phonemes(u'ㅇ', next_nucleus, next_coda)
+                suffix = next_letter + suffix[1:]
+        return Particle.allomorph(self, coda) + suffix
