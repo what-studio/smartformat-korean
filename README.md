@@ -1,5 +1,12 @@
 # SmartFormat-Korean
 
+[![Build Status]
+(https://img.shields.io/travis/what-studio/smartformat-korean.svg)]
+(https://travis-ci.org/what-studio/smartformat-korean)
+[![Coverage Status]
+(https://img.shields.io/coveralls/what-studio/smartformat-korean.svg)]
+(https://coveralls.io/r/what-studio/smartformat-korean)
+
 [Python 용 SmartFormat][smartformat-python]에서 쓸 수 있는 한국어 확장입니다.
 
 [smartformat-python]: https://github.com/what-studio/smartformat
