@@ -38,7 +38,7 @@ SPECIAL_PARTICLES = [Euro, Ida]
 
 #: Matches to particles which have no allomorphic rules.
 INVARIANT_PARTICLE_PATTERN = re.compile(
-    u'^((의|도|만|부터|까지|마저|조차)$|에|께|하)'
+    u'^((의|도|만|보다|부터|까지|마저|조차)$|에|께|하)'
 )
 
 

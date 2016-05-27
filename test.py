@@ -146,6 +146,8 @@ def test_ida(f):
     assert f(u'{:든지}', u'버터플') == u'버터플이든지'
     assert f(u'{:던가}?', u'버터플') == u'버터플이던가?'
     assert f(u'{:여도}', u'버터플') == u'버터플이어도'
+    assert f(u'{0:나} {1:나}', u'피카츄', u'버터플') == u'피카츄나 버터플이나'
+    assert f(u'{:야말로}', u'버터플') == u'버터플이야말로'
 
 
 def test_invariant_particles(f):
@@ -156,6 +158,7 @@ def test_invariant_particles(f):
     assert f(u'{:께서도}', u'각하') == u'각하께서도'
     assert f(u'{:의}', u'이상해씨') == u'이상해씨의'
     assert f(u'{:만}', u'리자몽') == u'리자몽만'
+    assert f(u'{:하고}', u'버터플') == u'버터플하고'
 
 
 def test_tolerant_forms(f):
