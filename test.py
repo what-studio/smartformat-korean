@@ -88,6 +88,7 @@ def test_blind(smart):
     assert f(u'{:ko(으로):{}}', u'헬로월드!') == u'헬로월드!로'
     assert f(u'{:ko(으로):{}}', u'?_?') == u'?_?(으)로'
     assert f(u'{:가}?', u'임창정,,,') == u'임창정,,,이?'
+    assert f(u'{:을} 샀다.', u'<듀랑고>') == u'<듀랑고>를 샀다.'
 
 
 def test_vocative_particles(smart):
