@@ -148,7 +148,6 @@ def test_ida(f):
     assert f(u'{:여도}', u'버터플') == u'버터플이어도'
 
 
-@pytest.mark.xfail
 def test_invariant_particles(f):
     assert f(u'{:도}', u'피카츄') == u'피카츄도'
     assert f(u'{:도}', u'고라파덕') == u'고라파덕도'
@@ -156,6 +155,7 @@ def test_invariant_particles(f):
     assert f(u'{:에서는}', u'판교') == u'판교에서는'
     assert f(u'{:께서도}', u'각하') == u'각하께서도'
     assert f(u'{:의}', u'이상해씨') == u'이상해씨의'
+    assert f(u'{:만}', u'리자몽') == u'리자몽만'
 
 
 def test_tolerant_forms(f):

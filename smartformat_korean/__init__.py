@@ -9,6 +9,8 @@
    :license: BSD, see LICENSE for more details.
 
 """
+import re
+
 from smartformat import extension
 
 from .hangul import is_hangul
@@ -30,8 +32,14 @@ PARTICLES = [
     Particle(u'이여', u'여'),
     Particle(u'이시여', u'시여'),
 ]
+
 #: Allomorphic Korean particles with special rules.
 SPECIAL_PARTICLES = [Euro, Ida]
+
+#: Matches to particles which have no allomorphic rules.
+INVARIANT_PARTICLE_PATTERN = re.compile(
+    u'^((의|도|만|부터|까지|마저|조차)$|에|께|하)'
+)
 
 
 # Index particles by their forms.
@@ -72,17 +80,22 @@ def ko(formatter, value, name, option, format):
             # All option letters have to be Hangul
             # to use this extension implicitly.
             return
-    try:
-        # Choose a known particle.
-        particle = _particle_index[option]
-    except KeyError:
-        # Choose a special particle which doesn't return ``None``.
-        for particle in SPECIAL_PARTICLES:
-            suffix = particle(word=value, form=option)
-            if suffix is not None:
-                break
-        else:
-            raise ValueError('Invalid Korean particle: %r' % option)
+    if INVARIANT_PARTICLE_PATTERN.match(option):
+        # Invariant particle given.
+        suffix = option
     else:
-        suffix = particle(word=value)
+        try:
+            # Choose a known allmorphic particle.
+            particle = _particle_index[option]
+        except KeyError:
+            # Choose a special allmorphic particle
+            # which doesn't return ``None``.
+            for particle in SPECIAL_PARTICLES:
+                suffix = particle(word=value, form=option)
+                if suffix is not None:
+                    break
+            else:
+                raise ValueError('Invalid Korean particle: %r' % option)
+        else:
+            suffix = particle(word=value)
     return formatter.format(format, value) + suffix
