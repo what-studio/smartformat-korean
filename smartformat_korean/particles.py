@@ -17,7 +17,7 @@ from six import PY2, with_metaclass
 from .hangul import join_phonemes, split_phonemes
 
 
-__all__ = ['Particle', 'SpecialParticle', 'Euro', 'Ida']
+__all__ = ['Particle', 'SpecialParticle', 'Euro', 'Euroseo', 'Eurosseo', 'Ida']
 
 
 #: Matches to string should be ignored when selecting an allomorph.
@@ -80,7 +80,7 @@ class Particle(object):
 
     @staticmethod
     def combine_forms(form1, form2):
-        """Generates a general combination form for Korean particles."""
+        """defines a general combination form for Korean particles."""
         return u'%s(%s)' % (form1, form2)
 
 
@@ -100,23 +100,14 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
     rule.
     """
 
+    form1 = form2 = default = NotImplemented
+
     def __init__(self, *args, **kwargs):
         pass
 
     def __repr__(self):
         arg = self.__class__.__name__ if PY2 else self.default
         return '<Particle(special): %s>' % arg
-
-
-class Euro(SpecialParticle):
-    """"으로" has a special allomorphic rule after final Rieul."""
-
-    form1 = u'으로'
-    form2 = u'로'
-    default = u'(으)로'
-
-    def allomorph(self, final):
-        return self.form2 if final is None or final == u'ㄹ' else self.form1
 
 
 class Ida(SpecialParticle):
@@ -168,6 +159,22 @@ class Ida(SpecialParticle):
             return u'이' + verb
 
 
-if not PY2:
-    locals().update({u'으로': Euro, u'이다': Ida})
-    __all__.extend([u'으로', u'이다'])
+class EuroLikeParticle(Particle):
+    """"으로" like particles have a special allomorphic rule after final
+    Rieul.
+    """
+
+    def allomorph(self, final):
+        return self.form2 if final is None or final == u'ㄹ' else self.form1
+
+
+def define_euro_like_particle(name, form2):
+    """Defines a special particle which extends :class:`EuroLikeParticle`."""
+    return type(name, (SpecialParticle, EuroLikeParticle), {
+        'form1': u'으' + form2, 'form2': form2, 'default': u'(으)' + form2
+    })
+
+
+Euro = define_euro_like_particle('Euro', u'로')
+Euroseo = define_euro_like_particle('Euroseo', u'로서')
+Eurosseo = define_euro_like_particle('Eurosseo', u'로써')

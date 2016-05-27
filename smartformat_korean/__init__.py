@@ -14,7 +14,7 @@ import functools
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import Euro, Ida, Particle
+from .particles import Euro, Euroseo, Eurosseo, Ida, Particle
 
 
 __all__ = ['ko']
@@ -32,7 +32,7 @@ PARTICLES = [
     Particle(u'이여', u'여', u'(이)여'),
     Particle(u'이시여', u'시여', u'(이)시여'),
     # Special particles.
-    Euro,
+    Euro, Euroseo, Eurosseo,
 ]
 
 

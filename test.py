@@ -60,6 +60,9 @@ def test_euro(smart):
     assert f(u'{:ko(으로):{}}', u'버터플') == u'버터플로'
     assert f(u'{:ko(으로):{}}', u'고라파덕') == u'고라파덕으로'
     assert f(u'{:ko(으로):{}}', u'Pikachu') == u'Pikachu(으)로'
+    assert f(u'{:ko(로서):{}}', u'피카츄') == u'피카츄로서'
+    assert f(u'{:ko(로서):{}}', u'버터플') == u'버터플로서'
+    assert f(u'{:ko(로서):{}}', u'고라파덕') == u'고라파덕으로서'
 
 
 def test_exceptions(smart):
