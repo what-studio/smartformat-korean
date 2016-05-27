@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-   smartformat_korean
-   ~~~~~~~~~~~~~~~~~~
+   smartformat.ext.korean.hangul
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   SmartFormat extensions for Korean.
+   Manipulates Hangul letters.
 
    :copyright: (c) 2016 by What! Studio
    :license: BSD, see LICENSE for more details.
@@ -24,6 +24,7 @@ NUM_INITIALS = len(INITIALS)
 NUM_VOWELS = len(VOWELS)
 NUM_FINALS = len(FINALS)
 
+#: The Unicode offset of "가" which is the base offset for all Hangul letters.
 FIRST_HANGUL_OFFSET = ord(u'가')
 
 
