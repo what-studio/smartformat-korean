@@ -3,7 +3,7 @@ import pytest
 from smartformat import SmartFormatter
 from smartformat.ext.korean import ko
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
-from smartformat.ext.korean.particles import combine_tolerant_forms
+from smartformat.ext.korean.particles import combine_tolerances
 
 
 @pytest.fixture
@@ -33,8 +33,8 @@ def test_join_phonemes():
         join_phonemes(u'ㄷ', u'ㅏ', u'ㄹ', u'ㄱ')
 
 
-def test_tolerant_particle_forms():
-    c = lambda _1, _2: set(combine_tolerant_forms(_1, _2))
+def test_particle_tolerances():
+    c = lambda _1, _2: set(combine_tolerances(_1, _2))
     s = lambda x: set(x.split())
     assert c(u'이', u'가') == s(u'이(가) (이)가 가(이) (가)이')
     assert c(u'이', u'') == s(u'(이)')
@@ -161,7 +161,7 @@ def test_invariant_particles(f):
     assert f(u'{:하고}', u'버터플') == u'버터플하고'
 
 
-def test_tolerant_forms(f):
+def test_tolerances(f):
     assert f(u'{:은(는)}', u'피카츄') == u'피카츄는'
     assert f(u'{:(은)는}', u'피카츄') == u'피카츄는'
     assert f(u'{:는(은)}', u'피카츄') == u'피카츄는'

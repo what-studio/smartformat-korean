@@ -44,12 +44,12 @@ def pick_coda(letter):
         return coda
 
 
-def combine_tolerant_forms(form1, form2):
+def combine_tolerances(form1, form2):
     """Generates all reasonable tolerant particle forms::
 
-    >>> set(combine_tolerant_forms(u'이', u'가'))
+    >>> set(combine_tolerances(u'이', u'가'))
     set([u'이(가)', u'(이)가', u'가(이)', u'(가)이'])
-    >>> set(combine_tolerant_forms(u'이면', u'면'))
+    >>> set(combine_tolerances(u'이면', u'면'))
     set([u'(이)면'])
 
     """
@@ -89,12 +89,12 @@ class Particle(object):
     def tolerance(self):
         """The representative tolerant form."""
         if not hasattr(self, '_tolerance'):
-            self._tolerance = next(self.tolerant_forms())
+            self._tolerance = next(self.tolerances())
         return self._tolerance
 
-    def tolerant_forms(self):
+    def tolerances(self):
         """Yields all reasonable tolerant forms."""
-        return combine_tolerant_forms(self.form1, self.form2)
+        return combine_tolerances(self.form1, self.form2)
 
     def __call__(self, word, *args, **kwargs):
         """Selects an allomorphic form for the given word."""
@@ -104,7 +104,7 @@ class Particle(object):
 
     def __iter__(self):
         """Iterates for all allomorphic forms."""
-        return itertools.chain([self.form1, self.form2], self.tolerant_forms())
+        return itertools.chain([self.form1, self.form2], self.tolerances())
 
     def allomorph(self, coda):
         """Determines one of allomorphic forms based on a Hangul jongseung."""
