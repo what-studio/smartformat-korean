@@ -11,7 +11,7 @@
 """
 import functools
 
-from smartformat import ext
+from smartformat import extension
 
 from .hangul import is_hangul
 from .particles import Euro, Ida, Particle
@@ -45,7 +45,7 @@ for p in PARTICLES:
         _particle_index[form] = p
 
 
-@ext(['ko', ''], pass_formatter=True)
+@extension(['ko', ''])
 def ko(formatter, value, name, option, format):
     """Chooses different allomorphic forms for Korean particles.
 

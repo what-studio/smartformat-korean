@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import pytest
 from smartformat import SmartFormatter
-
-from smartformatkorean import join_phonemes, ko, split_phonemes
+from smartformat.ext.korean import ko
+from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
 
 
 @pytest.fixture
