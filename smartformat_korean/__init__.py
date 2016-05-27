@@ -49,8 +49,8 @@ for p in PARTICLES:
 def ko(formatter, value, name, option, format):
     """Chooses different allomorphic forms for Korean particles.
 
-    Implicit Spec: `{:[-]post_position}`
-    Explicit Spec: `{:ko(post_position):item}`
+    Implicit Spec: `{:[-]particle}`
+    Explicit Spec: `{:ko(particle):item}`
 
     Example::
 
