@@ -3,6 +3,7 @@ import pytest
 from smartformat import SmartFormatter
 from smartformat.ext.korean import ko
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
+from smartformat.ext.korean.particles import combine_tolerant_forms
 
 
 @pytest.fixture
@@ -30,6 +31,17 @@ def test_join_phonemes():
     assert join_phonemes((u'ㅊ', u'ㅠ')) == u'츄'
     with pytest.raises(TypeError):
         join_phonemes(u'ㄷ', u'ㅏ', u'ㄹ', u'ㄱ')
+
+
+def test_tolerant_particle_forms():
+    c = lambda _1, _2: set(combine_tolerant_forms(_1, _2))
+    s = lambda x: set(x.split())
+    assert c(u'이', u'가') == s(u'이(가) (이)가 가(이) (가)이')
+    assert c(u'이', u'') == s(u'(이)')
+    assert c(u'으로', u'로') == s(u'(으)로')
+    assert c(u'이여', u'여') == s(u'(이)여')
+    assert c(u'이시여', u'시여') == s(u'(이)시여')
+    assert c(u'아', u'야') == s(u'아(야) (아)야 야(아) (야)아')
 
 
 def test_explicit(f):
@@ -146,8 +158,8 @@ def test_invariant_particles(f):
     assert f(u'{:의}', u'이상해씨') == u'이상해씨의'
 
 
-def test_default_forms(f):
+def test_tolerant_forms(f):
     assert f(u'{:은(는)}', u'피카츄') == u'피카츄는'
-    # assert f(u'{:(은)는}', u'피카츄') == u'피카츄는'
-    # assert f(u'{:는(은)}', u'피카츄') == u'피카츄는'
-    # assert f(u'{:(는)은}', u'피카츄') == u'피카츄는'
+    assert f(u'{:(은)는}', u'피카츄') == u'피카츄는'
+    assert f(u'{:는(은)}', u'피카츄') == u'피카츄는'
+    assert f(u'{:(는)은}', u'피카츄') == u'피카츄는'

@@ -9,6 +9,7 @@
    :license: BSD, see LICENSE for more details.
 
 """
+import itertools
 import re
 
 from bidict import bidict
@@ -43,6 +44,32 @@ def pick_coda(letter):
         return coda
 
 
+def combine_tolerant_forms(form1, form2):
+    """Generates tolerant particle forms::
+
+    >>> set(combine_tolerant_forms(u'이', u'가'))
+    set([u'이(가)', u'(이)가', u'가(이)', u'(가)이'])
+    >>> set(combine_tolerant_forms(u'이면', u'면'))
+    set([u'(이)면'])
+
+    """
+    if not (form1 and form2):
+        # Some of forms is empty.
+        yield u'(%s)' % (form1 or form2)
+        return
+    len1, len2 = len(form1), len(form2)
+    if len1 != len2:
+        longer, shorter = (form1, form2) if len1 > len2 else (form2, form1)
+        if longer.endswith(shorter):
+            # Longer form ends with shorter form.
+            yield u'(%s)%s' % (longer[:-len(shorter)], shorter)
+            return
+    # No similarity between two forms.
+    for form1, form2 in [(form1, form2), (form2, form1)]:
+        yield u'%s(%s)' % (form1, form2)
+        yield u'(%s)%s' % (form1, form2)
+
+
 class Particle(object):
     """Represents a Korean allomorphic particle as known as "조사".
 
@@ -52,15 +79,22 @@ class Particle(object):
 
     """
 
-    __slots__ = ('form1', 'form2', 'default')
+    __slots__ = ('form1', 'form2', '_tolerance')
 
-    def __init__(self, form1, form2, default=None):
+    def __init__(self, form1, form2):
         self.form1 = form1
         self.form2 = form2
-        if default is None:
-            self.default = self.combine_forms(form1, form2)
-        else:
-            self.default = default
+
+    @property
+    def tolerance(self):
+        """The representative tolerant form."""
+        if not hasattr(self, '_tolerance'):
+            self._tolerance = next(self.tolerant_forms())
+        return self._tolerance
+
+    def tolerant_forms(self):
+        """Yields all reasonable tolerant forms."""
+        return combine_tolerant_forms(self.form1, self.form2)
 
     def __call__(self, word, *args, **kwargs):
         """Selects an allomorphic form for the given word."""
@@ -70,32 +104,29 @@ class Particle(object):
 
     def __iter__(self):
         """Iterates for all allomorphic forms."""
-        return iter([self.default, self.form1, self.form2])
+        return itertools.chain([self.form1, self.form2], self.tolerant_forms())
 
     def allomorph(self, coda):
         """Determines one of allomorphic forms based on a Hangul jongseung."""
         if coda is None:
-            return self.default
+            return self.tolerance
         elif coda:
             return self.form1
         else:
             return self.form2
 
     def __unicode__(self):
-        return self.default
+        return self.tolerance
 
     def __repr__(self):
-        return '<Particle: ' + (repr if PY2 else str)(self.default) + '>'
-
-    @staticmethod
-    def combine_forms(form1, form2):
-        """Defines a general combination form for Korean particles."""
-        return u'%s(%s)' % (form1, form2)
+        return '<Particle: ' + (repr if PY2 else str)(self.tolerance) + '>'
 
 
 class SpecialParticleMeta(type):
 
     def __new__(meta, name, bases, attrs):
+        if '__slots__' in attrs:
+            attrs['__slots__'] += ('_tolerance',)
         base_meta = super(SpecialParticleMeta, meta)
         cls = base_meta.__new__(meta, name, bases, attrs)
         if bases == (Particle,):
@@ -112,7 +143,7 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
     __slots__ = ()
 
     # Concrete classes should set these strings.
-    form1 = form2 = default = NotImplemented
+    form1 = form2 = NotImplemented
 
     def __init__(self, *args, **kwargs):
         pass
@@ -121,13 +152,13 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
         return super(SpecialParticle, self).__call__(word, form)
 
     def __repr__(self):
-        arg = self.__class__.__name__ if PY2 else self.default
+        arg = self.__class__.__name__ if PY2 else self.tolerance
         return '<Particle(special): %s>' % arg
 
 
 class Euro(SpecialParticle):
     """Particles starting with "으로" have a special allomorphic rule after
-    coda Rieul.  "으로" can be extended with some of suffixes such as
+    coda "ㄹ".  "으로" can also be extended with some of suffixes such as
     "으로서", "으로부터".
     """
 
@@ -135,7 +166,6 @@ class Euro(SpecialParticle):
 
     form1 = u'으'
     form2 = u''
-    default = u'(으)'
 
     #: Matches with initial "으" or "(으)" before "로".
     PREFIX_PATTERN = re.compile(u'^(으|\(으\))?로')
@@ -148,7 +178,7 @@ class Euro(SpecialParticle):
         # Remove initial "으" or "(으)" to make a suffix.
         suffix = form[max(0, m.end(1)):]
         if coda is None:
-            prefix = self.default
+            prefix = self.tolerance
         elif coda and coda != u'ㄹ':
             prefix = self.form1
         else:
@@ -165,7 +195,6 @@ class Ida(SpecialParticle):
 
     form1 = u'이'
     form2 = u''
-    default = u'(이)'
 
     #: Matches with initial "이" or "(이)" to normalize fusioned verbal forms.
     I_PATTERN = re.compile(u'^이|\(이\)')

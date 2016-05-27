@@ -27,8 +27,8 @@ PARTICLES = [
     Particle(u'과', u'와'),
     # Vocative particles.
     Particle(u'아', u'야'),
-    Particle(u'이여', u'여', u'(이)여'),
-    Particle(u'이시여', u'시여', u'(이)시여'),
+    Particle(u'이여', u'여'),
+    Particle(u'이시여', u'시여'),
 ]
 #: Allomorphic Korean particles with special rules.
 SPECIAL_PARTICLES = [Euro, Ida]
