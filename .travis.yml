@@ -14,8 +14,8 @@ install:
 - pip install flake8 flake8-import-order pytest pytest-cov coveralls
 script:
 - | # flake8
-  flake8 smartformat test.py setup.py -v --show-source
+  flake8 smartformat_korean test.py setup.py -v --show-source
 - | # pytest
-  py.test -v --cov=smartformat --cov-report=term-missing
+  py.test -v --cov=smartformat_korean --cov-report=term-missing
 after_success:
 - coveralls
