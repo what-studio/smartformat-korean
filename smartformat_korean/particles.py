@@ -123,13 +123,15 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
 
 class Euro(SpecialParticle):
     """Particles starting with "으로" have a special allomorphic rule after
-    final Rieul.
+    final Rieul.  "으로" can be extended with some of suffixes such as
+    "으로서", "으로부터".
     """
 
     form1 = u'으'
     form2 = u''
     default = u'(으)'
 
+    #: Matches with initial "으" or "(으)" before "로".
     PREFIX_PATTERN = re.compile(u'^(으|\(으\))?로')
 
     def allomorph(self, final, form):
