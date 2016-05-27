@@ -21,7 +21,13 @@ __all__ = ['Particle', 'SpecialParticle', 'Euro', 'Ida']
 
 
 #: Matches to string should be ignored when selecting an allomorph.
-BLIND_PATTERN = re.compile(r'\(.*?\)$')
+BLIND_PATTERN = re.compile(r'''
+    (?:
+        \( .*? \)
+    |
+        [!@#$%^&*?]+
+    )$
+''', re.VERBOSE)
 
 
 def pick_final(letter):
@@ -53,7 +59,7 @@ class Particle(object):
         word = BLIND_PATTERN.sub(u'', word)
         try:
             final = pick_final(word[-1])
-        except ValueError:
+        except (ValueError, IndexError):
             return self.default
         else:
             return self.allomorph(final)

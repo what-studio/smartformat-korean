@@ -49,6 +49,9 @@ def test_implicit(smart):
     assert f(u'{:아} 안녕', u'고라파덕') == u'고라파덕아 안녕'
     assert f(u'{:을} 칼로 깎는다.', u'사과') == u'사과를 칼로 깎는다.'
     assert f(u'{:-을}', u'수박') == u'을'
+    assert f(u'{:ㄱ나니?}', u'서태지') == u'서태지'
+    # All option letters have to be Hangul.
+    assert f(u'{:을!}', u'서태지') == u'서태지'
 
 
 def test_euro(smart):
@@ -59,10 +62,20 @@ def test_euro(smart):
     assert f(u'{:ko(으로):{}}', u'Pikachu') == u'Pikachu(으)로'
 
 
-def test_braket(smart):
+def test_exceptions(smart):
+    f = smart.format
+    # empty
+    assert f(u'{:를}', u'') == u'을(를)'
+    # initial only
+    assert f(u'{:를}', u'ㅋㅋㅋ') == u'ㅋㅋㅋ을(를)'
+
+
+def test_blind(smart):
     f = smart.format
     assert f(u'{:ko(으로):{}}', u'피카츄(Lv.25)') == u'피카츄(Lv.25)로'
     assert f(u'{:ko(으로):{}}', u'피카(?)츄') == u'피카(?)츄로'
+    assert f(u'{:ko(으로):{}}', u'헬로월드!') == u'헬로월드!로'
+    assert f(u'{:ko(으로):{}}', u'?_?') == u'?_?(으)로'
 
 
 def test_vocative_particles(smart):
