@@ -46,11 +46,9 @@ SmartFormat 한국어 확장은 자동으로 가장 자연스러운 조사 형�
 >>> from smartformat import SmartFormatter
 >>> from smartformat.ext.korean import ko
 >>> smart = SmartFormatter('ko_KR', [ko])
->>> smart.format(u'{subj:는} {obj:다}.',
-...              subj=u'대한민국', obj=u'민주공화국')
+>>> smart.format(u'{subj:는} {obj:다}.', subj=u'대한민국', obj=u'민주공화국')
 대한민국은 민주공화국이다.
->>> smart.format(u'{pokemon:은} {skill:을} 시전했다!',
-...              pokemon=u'피카츄', skill=u'전광석화')
+>>> smart.format(u'{pokemon:은} {skill:을} 시전했다!', pokemon=u'피카츄', skill=u'전광석화')
 피카츄는 전광석화를 시전했다!
 >>> smart.format(u'바로 {pokemon:이에요}.', pokemon=u'피카츄')
 바로 피카츄예요.
