@@ -3,7 +3,8 @@ import pytest
 from smartformat import SmartFormatter
 from smartformat.ext.korean import ko
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
-from smartformat.ext.korean.particles import combine_tolerances
+from smartformat.ext.korean.particles import (
+    combine_tolerances, pick_coda_from_decimal)
 
 
 @pytest.fixture
@@ -166,3 +167,23 @@ def test_tolerances(f):
     assert f(u'{:(은)는}', u'피카츄') == u'피카츄는'
     assert f(u'{:는(은)}', u'피카츄') == u'피카츄는'
     assert f(u'{:(는)은}', u'피카츄') == u'피카츄는'
+
+
+def test_decimal(f):
+    assert f(u'{:이}', u'레벨30') == u'레벨30이'
+    assert f(u'{:이}', u'레벨34') == u'레벨34가'
+    assert f(u'{:으로}', u'레벨7') == u'레벨7로'
+    assert f(u'{:으로}', u'레벨42') == u'레벨42로'
+    assert f(u'{:으로}', u'레벨100') == u'레벨100으로'
+    assert pick_coda_from_decimal('1') == u'ㄹ'
+    assert pick_coda_from_decimal('2') == u''
+    assert pick_coda_from_decimal('3') == u'ㅁ'
+    assert pick_coda_from_decimal('10') == u'ㅂ'
+    assert pick_coda_from_decimal('16') == u'ㄱ'
+    assert pick_coda_from_decimal('19') == u''
+    assert pick_coda_from_decimal('200') == u'ㄱ'
+    assert pick_coda_from_decimal('30000') == u'ㄴ'
+    assert pick_coda_from_decimal('400000') == u'ㄴ'
+    assert pick_coda_from_decimal('500000000') == u'ㄱ'
+    assert pick_coda_from_decimal('1' + '0' * 50) == u'ㄱ'
+    assert pick_coda_from_decimal('1' + '0' * 100) is None

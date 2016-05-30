@@ -9,6 +9,8 @@
    :license: BSD, see LICENSE for more details.
 
 """
+from bisect import bisect_right
+from decimal import Decimal
 import itertools
 import re
 
@@ -18,7 +20,8 @@ from six import PY2, with_metaclass
 from .hangul import join_phonemes, split_phonemes
 
 
-__all__ = ['Particle', 'SpecialParticle', 'Euro', 'Ida']
+__all__ = ['combine_tolerances', 'Euro', 'Ida', 'Particle', 'pick_coda',
+           'pick_coda_from_decimal', 'SpecialParticle']
 
 
 #: Matches to string should be ignored when selecting an allomorph.
@@ -29,6 +32,9 @@ BLIND_PATTERN = re.compile(r'''
         [!@#$%^&*?,.:;'"\[\]{}<>]+
     )$
 ''', re.VERBOSE)
+
+
+DECIMAL_PATTERN = re.compile(r'[0-9]+(\.[0-9]+)?$')
 
 
 def pick_coda(letter):
@@ -42,6 +48,35 @@ def pick_coda(letter):
         return None
     else:
         return coda
+
+
+# Data for picking coda from a decimal.
+DIGITS = u'영일이삼사오육칠팔구'
+EXPS = {1: u'십', 2: u'백', 3: u'천', 4: u'만',
+        8: u'억', 12: u'조', 16: u'경', 20: u'해',
+        24: u'자', 28: u'양', 32: u'구', 36: u'간',
+        40: u'정', 44: u'재', 48: u'극', 52: u'항하사',
+        56: u'아승기', 60: u'나유타', 64: u'불가사의', 68: u'무량대수'}
+DIGIT_CODAS = [pick_coda(x[-1]) for x in DIGITS]
+EXP_CODAS = {exp: pick_coda(x[-1]) for exp, x in EXPS.items()}
+EXP_INDICES = list(sorted(EXPS.keys()))
+UNREADABLE_EXP = max(EXP_INDICES) + 4
+EXP_CODAS[UNREADABLE_EXP] = None
+EXP_INDICES.append(UNREADABLE_EXP)
+
+
+def pick_coda_from_decimal(decimal):
+    """Picks only a coda from a decimal."""
+    decimal = Decimal(decimal)
+    __, digits, exp = decimal.as_tuple()
+    if exp < 0:
+        return DIGIT_CODAS[digits[-1]]
+    __, digits, exp = decimal.normalize().as_tuple()
+    index = bisect_right(EXP_INDICES, exp) - 1
+    if index < 0:
+        return DIGIT_CODAS[digits[-1]]
+    else:
+        return EXP_CODAS[EXP_INDICES[index]]
 
 
 def combine_tolerances(form1, form2):
@@ -99,7 +134,11 @@ class Particle(object):
     def __call__(self, word, *args, **kwargs):
         """Selects an allomorphic form for the given word."""
         word = BLIND_PATTERN.sub(u'', word)
-        coda = pick_coda(word[-1]) if word else None
+        decimal_match = DECIMAL_PATTERN.search(word)
+        if decimal_match:
+            coda = pick_coda_from_decimal(decimal_match.group(0))
+        else:
+            coda = pick_coda(word[-1]) if word else None
         return self.allomorph(coda, *args, **kwargs)
 
     def __iter__(self):
