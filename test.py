@@ -46,17 +46,17 @@ def test_particle_tolerances():
 
 
 def test_explicit(f):
-    assert f(u'{:ko(아):{}} 안녕', u'피카츄') == u'피카츄야 안녕'
-    assert f(u'{:ko(아):{}} 안녕', u'버터플') == u'버터플아 안녕'
-    assert f(u'{:ko(아):{}} 안녕', u'고라파덕') == u'고라파덕아 안녕'
+    assert f(u'{:ko(아):{}} 안녕', u'나오') == u'나오야 안녕'
+    assert f(u'{:ko(아):{}} 안녕', u'키홀') == u'키홀아 안녕'
+    assert f(u'{:ko(아):{}} 안녕', u'모리안') == u'모리안아 안녕'
     assert f(u'{:ko(을):*{}*} 깎는다.', u'사과') == u'*사과*를 깎는다.'
     assert f(u'{:ko(을):}', u'수박') == u'을'
 
 
 def test_implicit(f):
-    assert f(u'{:아} 안녕', u'피카츄') == u'피카츄야 안녕'
-    assert f(u'{:아} 안녕', u'버터플') == u'버터플아 안녕'
-    assert f(u'{:아} 안녕', u'고라파덕') == u'고라파덕아 안녕'
+    assert f(u'{:아} 안녕', u'나오') == u'나오야 안녕'
+    assert f(u'{:아} 안녕', u'키홀') == u'키홀아 안녕'
+    assert f(u'{:아} 안녕', u'모리안') == u'모리안아 안녕'
     assert f(u'{:을} 칼로 깎는다.', u'사과') == u'사과를 칼로 깎는다.'
     assert f(u'{:-을}', u'수박') == u'을'
     assert f(u'{:ㄱ나니?}', u'서태지') == u'서태지'
@@ -65,20 +65,20 @@ def test_implicit(f):
 
 
 def test_euro(f):
-    assert f(u'{:ko(으로):{}}', u'피카츄') == u'피카츄로'
-    assert f(u'{:ko(으로):{}}', u'버터플') == u'버터플로'
-    assert f(u'{:ko(으로):{}}', u'고라파덕') == u'고라파덕으로'
-    assert f(u'{:ko(으로):{}}', u'Pikachu') == u'Pikachu(으)로'
-    assert f(u'{:ko(로서):{}}', u'피카츄') == u'피카츄로서'
-    assert f(u'{:ko(로서):{}}', u'버터플') == u'버터플로서'
-    assert f(u'{:ko(로서):{}}', u'고라파덕') == u'고라파덕으로서'
-    assert f(u'{:ko(로써):{}}', u'피카츄') == u'피카츄로써'
-    assert f(u'{:ko(로써):{}}', u'버터플') == u'버터플로써'
-    assert f(u'{:ko(로써):{}}', u'고라파덕') == u'고라파덕으로써'
-    assert f(u'{:ko(로부터):{}}', u'피카츄') == u'피카츄로부터'
-    assert f(u'{:ko(로부터):{}}', u'버터플') == u'버터플로부터'
-    assert f(u'{:ko(로부터):{}}', u'고라파덕') == u'고라파덕으로부터'
-    assert f(u'{:ko(로부터도):{}}', u'고라파덕') == u'고라파덕으로부터도'
+    assert f(u'{:ko(으로):{}}', u'나오') == u'나오로'
+    assert f(u'{:ko(으로):{}}', u'키홀') == u'키홀로'
+    assert f(u'{:ko(으로):{}}', u'모리안') == u'모리안으로'
+    assert f(u'{:ko(으로):{}}', u'Nao') == u'Nao(으)로'
+    assert f(u'{:ko(로서):{}}', u'나오') == u'나오로서'
+    assert f(u'{:ko(로서):{}}', u'키홀') == u'키홀로서'
+    assert f(u'{:ko(로서):{}}', u'모리안') == u'모리안으로서'
+    assert f(u'{:ko(로써):{}}', u'나오') == u'나오로써'
+    assert f(u'{:ko(로써):{}}', u'키홀') == u'키홀로써'
+    assert f(u'{:ko(로써):{}}', u'모리안') == u'모리안으로써'
+    assert f(u'{:ko(로부터):{}}', u'나오') == u'나오로부터'
+    assert f(u'{:ko(로부터):{}}', u'키홀') == u'키홀로부터'
+    assert f(u'{:ko(로부터):{}}', u'모리안') == u'모리안으로부터'
+    assert f(u'{:ko(로부터도):{}}', u'모리안') == u'모리안으로부터도'
     assert f(u'{:ko((으)로부터의):{}} 편지', u'그녀') == u'그녀로부터의 편지'
 
 
@@ -90,8 +90,8 @@ def test_exceptions(f):
 
 
 def test_blind(f):
-    assert f(u'{:ko(으로):{}}', u'피카츄(Lv.25)') == u'피카츄(Lv.25)로'
-    assert f(u'{:ko(으로):{}}', u'피카(?)츄') == u'피카(?)츄로'
+    assert f(u'{:ko(으로):{}}', u'나오(Lv.25)') == u'나오(Lv.25)로'
+    assert f(u'{:ko(으로):{}}', u'나(?)오') == u'나(?)오로'
     assert f(u'{:ko(으로):{}}', u'헬로월드!') == u'헬로월드!로'
     assert f(u'{:ko(으로):{}}', u'?_?') == u'?_?(으)로'
     assert f(u'{:가}?', u'임창정,,,') == u'임창정,,,이?'
@@ -111,62 +111,62 @@ def test_vocative_particles(f):
 def test_ida(f):
     """Cases for '이다' which is a copulative and existential verb."""
     # Do or don't inject '이'.
-    assert f(u'{:이다}', u'피카츄') == u'피카츄다'
-    assert f(u'{:이다}', u'버터플') == u'버터플이다'
+    assert f(u'{:이다}', u'나오') == u'나오다'
+    assert f(u'{:이다}', u'키홀') == u'키홀이다'
     # Merge with the following vowel as /j/.
-    assert f(u'{:이에요}', u'피카츄') == u'피카츄예요'
-    assert f(u'{:이에요}', u'버터플') == u'버터플이에요'
+    assert f(u'{:이에요}', u'나오') == u'나오예요'
+    assert f(u'{:이에요}', u'키홀') == u'키홀이에요'
     # No allomorphs.
-    assert f(u'{:입니다}', u'피카츄') == u'피카츄입니다'
-    assert f(u'{:입니다}', u'버터플') == u'버터플입니다'
+    assert f(u'{:입니다}', u'나오') == u'나오입니다'
+    assert f(u'{:입니다}', u'키홀') == u'키홀입니다'
     # Give up to select an allomorph.
     assert f(u'{:이다}', u'God') == u'God(이)다'
     assert f(u'{:이에요}', u'God') == u'God(이)에요'
     assert f(u'{:입니다}', u'God') == u'God입니다'
     assert f(u'{:였습니다}', u'God') == u'God(이)었습니다'
     # Many examples.
-    assert f(u'{:였습니다}', u'버터플') == u'버터플이었습니다'
-    assert f(u'{:였습니다}', u'피카츄') == u'피카츄였습니다'
-    assert f(u'{:이었다}', u'피카츄') == u'피카츄였다'
-    assert f(u'{:이었지만}', u'피카츄') == u'피카츄였지만'
-    assert f(u'{:이지만}', u'피카츄') == u'피카츄지만'
-    assert f(u'{:이지만}', u'버터플') == u'버터플이지만'
-    assert f(u'{:지만}', u'피카츄') == u'피카츄지만'
-    assert f(u'{:지만}', u'버터플') == u'버터플이지만'
-    assert f(u'{:다}', u'피카츄') == u'피카츄다'
-    assert f(u'{:다}', u'버터플') == u'버터플이다'
-    assert f(u'{:이에요}', u'피카츄') == u'피카츄예요'
-    assert f(u'{:이에요}', u'버터플') == u'버터플이에요'
-    assert f(u'{:고}', u'피카츄') == u'피카츄고'
-    assert f(u'{:고}', u'버터플') == u'버터플이고'
-    assert f(u'{:고}', u'리자몽') == u'리자몽이고'
-    assert f(u'{:여서}', u'피카츄') == u'피카츄여서'
-    assert f(u'{:여서}', u'버터플') == u'버터플이어서'
-    assert f(u'{:이어서}', u'피카츄') == u'피카츄여서'
-    assert f(u'{:라고라}?', u'버터플') == u'버터플이라고라?'
-    assert f(u'{:든지}', u'버터플') == u'버터플이든지'
-    assert f(u'{:던가}?', u'버터플') == u'버터플이던가?'
-    assert f(u'{:여도}', u'버터플') == u'버터플이어도'
-    assert f(u'{0:나} {1:나}', u'피카츄', u'버터플') == u'피카츄나 버터플이나'
-    assert f(u'{:야말로}', u'버터플') == u'버터플이야말로'
+    assert f(u'{:였습니다}', u'키홀') == u'키홀이었습니다'
+    assert f(u'{:였습니다}', u'나오') == u'나오였습니다'
+    assert f(u'{:이었다}', u'나오') == u'나오였다'
+    assert f(u'{:이었지만}', u'나오') == u'나오였지만'
+    assert f(u'{:이지만}', u'나오') == u'나오지만'
+    assert f(u'{:이지만}', u'키홀') == u'키홀이지만'
+    assert f(u'{:지만}', u'나오') == u'나오지만'
+    assert f(u'{:지만}', u'키홀') == u'키홀이지만'
+    assert f(u'{:다}', u'나오') == u'나오다'
+    assert f(u'{:다}', u'키홀') == u'키홀이다'
+    assert f(u'{:이에요}', u'나오') == u'나오예요'
+    assert f(u'{:이에요}', u'키홀') == u'키홀이에요'
+    assert f(u'{:고}', u'나오') == u'나오고'
+    assert f(u'{:고}', u'키홀') == u'키홀이고'
+    assert f(u'{:고}', u'모리안') == u'모리안이고'
+    assert f(u'{:여서}', u'나오') == u'나오여서'
+    assert f(u'{:여서}', u'키홀') == u'키홀이어서'
+    assert f(u'{:이어서}', u'나오') == u'나오여서'
+    assert f(u'{:라고라}?', u'키홀') == u'키홀이라고라?'
+    assert f(u'{:든지}', u'키홀') == u'키홀이든지'
+    assert f(u'{:던가}?', u'키홀') == u'키홀이던가?'
+    assert f(u'{:여도}', u'키홀') == u'키홀이어도'
+    assert f(u'{0:나} {1:나}', u'나오', u'키홀') == u'나오나 키홀이나'
+    assert f(u'{:야말로}', u'키홀') == u'키홀이야말로'
 
 
 def test_invariant_particles(f):
-    assert f(u'{:도}', u'피카츄') == u'피카츄도'
-    assert f(u'{:도}', u'고라파덕') == u'고라파덕도'
+    assert f(u'{:도}', u'나오') == u'나오도'
+    assert f(u'{:도}', u'모리안') == u'모리안도'
     assert f(u'{:에서}', u'판교') == u'판교에서'
     assert f(u'{:에서는}', u'판교') == u'판교에서는'
     assert f(u'{:께서도}', u'각하') == u'각하께서도'
-    assert f(u'{:의}', u'이상해씨') == u'이상해씨의'
-    assert f(u'{:만}', u'리자몽') == u'리자몽만'
-    assert f(u'{:하고}', u'버터플') == u'버터플하고'
+    assert f(u'{:의}', u'나오') == u'나오의'
+    assert f(u'{:만}', u'모리안') == u'모리안만'
+    assert f(u'{:하고}', u'키홀') == u'키홀하고'
 
 
 def test_tolerances(f):
-    assert f(u'{:은(는)}', u'피카츄') == u'피카츄는'
-    assert f(u'{:(은)는}', u'피카츄') == u'피카츄는'
-    assert f(u'{:는(은)}', u'피카츄') == u'피카츄는'
-    assert f(u'{:(는)은}', u'피카츄') == u'피카츄는'
+    assert f(u'{:은(는)}', u'나오') == u'나오는'
+    assert f(u'{:(은)는}', u'나오') == u'나오는'
+    assert f(u'{:는(은)}', u'나오') == u'나오는'
+    assert f(u'{:(는)은}', u'나오') == u'나오는'
 
 
 def test_decimal(f):
