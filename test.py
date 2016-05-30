@@ -156,7 +156,7 @@ def test_invariant_particles(f):
     assert f(u'{:도}', u'모리안') == u'모리안도'
     assert f(u'{:에서}', u'판교') == u'판교에서'
     assert f(u'{:에서는}', u'판교') == u'판교에서는'
-    assert f(u'{:께서도}', u'각하') == u'각하께서도'
+    assert f(u'{:께서도}', u'선생님') == u'선생님께서도'
     assert f(u'{:의}', u'나오') == u'나오의'
     assert f(u'{:만}', u'모리안') == u'모리안만'
     assert f(u'{:하고}', u'키홀') == u'키홀하고'
