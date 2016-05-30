@@ -187,3 +187,7 @@ def test_decimal(f):
     assert pick_coda_from_decimal('500000000') == u'ㄱ'
     assert pick_coda_from_decimal('1' + '0' * 50) == u'ㄱ'
     assert pick_coda_from_decimal('1' + '0' * 100) is None
+    assert pick_coda_from_decimal('0') == u'ㅇ'
+    assert pick_coda_from_decimal('1.0') == u'ㅇ'
+    assert pick_coda_from_decimal('1.234567890') == u'ㅇ'
+    assert pick_coda_from_decimal('3.14') == u''
