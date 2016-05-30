@@ -56,13 +56,18 @@ EXPS = {1: u'십', 2: u'백', 3: u'천', 4: u'만',
         8: u'억', 12: u'조', 16: u'경', 20: u'해',
         24: u'자', 28: u'양', 32: u'구', 36: u'간',
         40: u'정', 44: u'재', 48: u'극', 52: u'항하사',
-        56: u'아승기', 60: u'나유타', 64: u'불가사의', 68: u'무량대수'}
+        56: u'아승기', 60: u'나유타', 64: u'불가사의', 68: u'무량대수',
+        72: u'겁', 76: u'업'}
 DIGIT_CODAS = [pick_coda(x[-1]) for x in DIGITS]
 EXP_CODAS = {exp: pick_coda(x[-1]) for exp, x in EXPS.items()}
 EXP_INDICES = list(sorted(EXPS.keys()))
-UNREADABLE_EXP = max(EXP_INDICES) + 4
-EXP_CODAS[UNREADABLE_EXP] = None
-EXP_INDICES.append(UNREADABLE_EXP)
+
+
+# Mark the first unreadable exponent.
+_unreadable_exp = max(EXP_INDICES) + 4
+EXP_CODAS[_unreadable_exp] = None
+EXP_INDICES.append(_unreadable_exp)
+del _unreadable_exp
 
 
 def pick_coda_from_decimal(decimal):
