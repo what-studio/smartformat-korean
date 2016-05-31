@@ -15,7 +15,7 @@ import itertools
 import re
 
 from bidict import bidict
-from six import PY2, with_metaclass
+from six import PY2, python_2_unicode_compatible, with_metaclass
 
 from .hangul import join_phonemes, split_phonemes
 
@@ -94,7 +94,7 @@ def combine_tolerances(form1, form2):
 
     """
     if not (form1 and form2):
-        # Some of forms is empty.
+        # Null allomorph exists.
         yield u'(%s)' % (form1 or form2)
         return
     len1, len2 = len(form1), len(form2)
@@ -110,6 +110,7 @@ def combine_tolerances(form1, form2):
         yield u'(%s)%s' % (form1, form2)
 
 
+@python_2_unicode_compatible
 class Particle(object):
     """Represents a Korean allomorphic particle as known as "조사".
 
@@ -159,7 +160,7 @@ class Particle(object):
         else:
             return self.form2
 
-    def __unicode__(self):
+    def __str__(self):
         return self.tolerance
 
     def __repr__(self):
