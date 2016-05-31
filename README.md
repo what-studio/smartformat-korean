@@ -17,6 +17,16 @@
 $ pip install smartformat-korean
 ```
 
+## 사용법
+
+```python
+>>> from smartformat import SmartFormatter
+>>> from smartformat.ext.korean import ko
+>>> smart = SmartFormatter('ko_KR', [ko])
+>>> smart.format(u'{subj:는} {obj:다}.', subj=u'대한민국', obj=u'민주공화국')
+대한민국은 민주공화국이다.
+```
+
 ## 자연스러운 조사 선택
 
 `의`, `도`, `만`, `보다`, `부터`, `까지`, `마저`, `조차`, `에~`,
@@ -40,14 +50,9 @@ $ pip install smartformat-korean
 
 SmartFormat 한국어 확장은 자동으로 가장 자연스러운 조사 형태를 선택합니다.
 만약 어떤 형태가 자연스러운지 알 수 없을 때에는 `은(는)`, `(으)로`처럼
-모든 형태를 병기합니다.
+모든 형태를 병기합니다:
 
 ```python
->>> from smartformat import SmartFormatter
->>> from smartformat.ext.korean import ko
->>> smart = SmartFormatter('ko_KR', [ko])
->>> smart.format(u'{subj:는} {obj:다}.', subj=u'대한민국', obj=u'민주공화국')
-대한민국은 민주공화국이다.
 >>> smart.format(u'{name:은} {alt:로} 불린다.', name=u'나오', alt=u'검은사신')
 나오는 검은사신으로 불린다.
 >>> smart.format(u'바로 {name:이에요}.', name=u'나오')
@@ -58,6 +63,22 @@ SmartFormat 한국어 확장은 자동으로 가장 자연스러운 조사 형�
 짚으로 만들었다.
 >>> smart.format(u'{material:로} 만들었다.', material=u'黃金')
 黃金(으)로 만들었다.
+```
+
+단어가 숫자로 끝나더라도 자연스러운 조사 형태가 선택됩니다:
+
+```python
+>>> smart.format(u'{level:이} 되었다.', level=u'레벨 10')
+레벨 10이 되었다.
+>>> smart.format(u'{level:이} 되었다.', level=u'레벨 999')
+레벨 999가 되었다.
+```
+
+괄호 속 단어는 조사 형태를 선택할 때 참고하지 않습니다:
+
+```python
+>>> smart.format(u'{item:을} 얻었다.', level=u'나뭇가지(만렙)')
+나뭇가지(만렙)를 얻었다.
 ```
 
 ## 만든이와 사용권
