@@ -8,8 +8,12 @@
 (https://coveralls.io/r/what-studio/smartformat-korean)
 
 [Python 용 SmartFormat][smartformat-python]에서 쓸 수 있는 한국어 확장입니다.
+[SmartFormat.NET][smartformat-net]을 쓴다면 [C# 구현][smartformat-net-korean]을
+사용해주세요.
 
 [smartformat-python]: https://github.com/what-studio/smartformat
+[smartformat-net]: https://github.com/scottrippey/SmartFormat.NET
+[smartformat-net-korean]: https://github.com/what-studio/smartformat.net-korean
 
 ## 설치
 
