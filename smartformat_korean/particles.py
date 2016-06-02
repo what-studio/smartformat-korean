@@ -13,6 +13,7 @@ from bisect import bisect_right
 from decimal import Decimal
 import itertools
 import re
+import unicodedata
 
 from bidict import bidict
 from six import PY2, python_2_unicode_compatible, with_metaclass
@@ -22,19 +23,6 @@ from .hangul import join_phonemes, split_phonemes
 
 __all__ = ['combine_tolerances', 'Euro', 'Ida', 'Particle', 'pick_coda',
            'pick_coda_from_decimal', 'SpecialParticle']
-
-
-#: Matches to string should be ignored when selecting an allomorph.
-BLIND_PATTERN = re.compile(r'''
-    (?:
-        \( .*? \)
-    |
-        [!@#$%^&*?,.:;'"\[\]{}<>]+
-    )$
-''', re.VERBOSE)
-
-
-DECIMAL_PATTERN = re.compile(r'[0-9]+(\.[0-9]+)?$')
 
 
 def pick_coda(letter):
@@ -48,6 +36,10 @@ def pick_coda(letter):
         return None
     else:
         return coda
+
+
+#: Matches to a decimal at the end of a word.
+DECIMAL_PATTERN = re.compile(r'[0-9]+(\.[0-9]+)?$')
 
 
 # Data for picking coda from a decimal.
@@ -82,6 +74,41 @@ def pick_coda_from_decimal(decimal):
         return DIGIT_CODAS[digits[-1]]
     else:
         return EXP_CODAS[EXP_INDICES[index]]
+
+
+# Patterns which match to insignificant letters at the end of words.
+INSIGNIFICANT_PARENTHESIS_PATTERN = re.compile(r'\(.*?\)$')
+INSIGNIFICANT_UNICODE_CATEGORY_PATTERN = re.compile(r'^([PZ].|Sk)$')
+
+
+def pick_significant(word):
+    """Gets a word which removes insignificant letters at the end of the given
+    word::
+
+    >>> pick_significant(u'넥슨(코리아)')
+    넥슨
+    >>> pick_significant(u'메이플스토리...')
+    메이플스토리
+
+    """
+    if not word:
+        return word
+    x = len(word)
+    while x > 0:
+        x -= 1
+        l = word[x]
+        # Skip a complete parenthesis.
+        if l == u')':
+            m = INSIGNIFICANT_PARENTHESIS_PATTERN.search(word[:x + 1])
+            if m is not None:
+                x = m.start()
+            continue
+        # Skip unreadable characters such as punctuations.
+        unicode_category = unicodedata.category(l)
+        if INSIGNIFICANT_UNICODE_CATEGORY_PATTERN.match(unicode_category):
+            continue
+        break
+    return word[:x + 1]
 
 
 def combine_tolerances(form1, form2):
@@ -139,7 +166,7 @@ class Particle(object):
 
     def __call__(self, word, *args, **kwargs):
         """Selects an allomorphic form for the given word."""
-        word = BLIND_PATTERN.sub(u'', word)
+        word = pick_significant(word)
         decimal_match = DECIMAL_PATTERN.search(word)
         if decimal_match:
             coda = pick_coda_from_decimal(decimal_match.group(0))
