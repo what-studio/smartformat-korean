@@ -14,7 +14,7 @@ import re
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import Euro, Ida, Particle
+from .particles import Euro, Gwa, Ida, Particle
 
 
 __all__ = ['ko']
@@ -26,7 +26,6 @@ PARTICLES = [
     Particle(u'은', u'는'),
     Particle(u'이', u'가'),
     Particle(u'을', u'를'),
-    Particle(u'과', u'와'),
     # Vocative particles.
     Particle(u'아', u'야'),
     Particle(u'이여', u'여'),
@@ -34,7 +33,7 @@ PARTICLES = [
 ]
 
 #: Allomorphic Korean particles with special rules.
-SPECIAL_PARTICLES = [Euro, Ida]
+SPECIAL_PARTICLES = [Gwa, Euro, Ida]
 
 #: Matches to particles which have no allomorphic rules.
 INVARIANT_PARTICLE_PATTERN = re.compile(
@@ -93,11 +92,11 @@ def ko(formatter, value, name, option, format):
             # which doesn't return ``None``.
             form = option
             for particle in SPECIAL_PARTICLES:
-                suffix = particle[word:form]
+                suffix = particle.allomorph_by_word(word, form)
                 if suffix is not None:
                     break
             else:
                 raise ValueError('Invalid Korean particle: %r' % option)
         else:
-            suffix = particle[word]
+            suffix = particle.allomorph_by_word(word)
     return formatter.format(format, value) + suffix

@@ -9,7 +9,7 @@
    :license: BSD, see LICENSE for more details.
 
 """
-import itertools
+from itertools import chain
 import re
 
 from bidict import bidict
@@ -19,7 +19,8 @@ from .coda import guess_coda
 from .hangul import join_phonemes, split_phonemes
 
 
-__all__ = ['combine_tolerances', 'Euro', 'Ida', 'Particle', 'SpecialParticle']
+__all__ = ['combine_tolerances', 'Euro', 'Gwa', 'Ida', 'Particle',
+           'SpecialParticle']
 
 
 def combine_tolerances(form1, form2):
@@ -48,11 +49,16 @@ def combine_tolerances(form1, form2):
         yield u'(%s)%s' % (form1, form2)
 
 
-DEFAULT_SLOTS = ('_tolerance',)
+class ParticleMeta(type):
+
+    def __new__(meta, name, bases, attrs):
+        if '__slots__' in attrs:
+            attrs['__slots__'] += ('_tolerances',)
+        return super(ParticleMeta, meta).__new__(meta, name, bases, attrs)
 
 
 @python_2_unicode_compatible
-class Particle(object):
+class Particle(with_metaclass(ParticleMeta)):
     """Represents a Korean allomorphic particle as known as "조사".
 
     This also implements the general allomorphic rule for most common
@@ -61,7 +67,7 @@ class Particle(object):
 
     """
 
-    __slots__ = ('form1', 'form2') + DEFAULT_SLOTS
+    __slots__ = ('form1', 'form2')
 
     def __init__(self, form1, form2):
         self.form1 = form1
@@ -70,13 +76,16 @@ class Particle(object):
     @property
     def tolerance(self):
         """The representative tolerant form."""
-        if not hasattr(self, '_tolerance'):
-            self._tolerance = next(self.tolerances())
-        return self._tolerance
+        return self.tolerances[0]
 
+    @property
     def tolerances(self):
-        """Yields all reasonable tolerant forms."""
-        return combine_tolerances(self.form1, self.form2)
+        try:
+            return self._tolerances
+        except AttributeError:
+            tolerances = tuple(combine_tolerances(self.form1, self.form2))
+            self._tolerances = tolerances
+            return tolerances
 
     def allomorph(self, coda):
         """Determines one of allomorphic forms based on a coda."""
@@ -108,7 +117,7 @@ class Particle(object):
 
     def __iter__(self):
         """Iterates for all allomorphic forms."""
-        return itertools.chain([self.form1, self.form2], self.tolerances())
+        return chain(filter(bool, [self.form1, self.form2]), self.tolerances)
 
     def __str__(self):
         return self.tolerance
@@ -117,7 +126,7 @@ class Particle(object):
         return '<Particle: ' + (repr if PY2 else str)(self.tolerance) + '>'
 
 
-class SingletonParticleMeta(type):
+class SingletonParticleMeta(ParticleMeta):
 
     def __new__(meta, name, bases, attrs):
         base_meta = super(SingletonParticleMeta, meta)
@@ -148,38 +157,63 @@ class SpecialParticle(Particle):
         return '<Particle(special): %s>' % arg
 
 
-class InflectingParticle(SpecialParticle):
-    """The base class for special particles but can be inflected."""
+class ConjugationalParticle(SpecialParticle):
+    """Conjugational particles have inflections."""
 
-    def __getitem__(self, word_and_form):
-        word, form = word_and_form.start, word_and_form.stop,
-        return self.allomorph_by_word(word, form)
+    def __getitem__(self, word_or_word_form):
+        if isinstance(word_or_word_form, slice):
+            word, form = word_or_word_form.start, word_or_word_form.stop
+        else:
+            word, form = word_or_word_form, self.form1
+        rv = self.allomorph_by_word(word, form)
+        if rv is None:
+            raise KeyError(form)
+        return rv
 
     def allomorph(self, coda, form):
         raise NotImplementedError
 
 
-class Euro(singleton_particle(InflectingParticle)):
+class CombinationalParticle(ConjugationalParticle):
+    """More letters can be placed after combinational particles."""
+
+    def match(self, form):
+        for x in self:
+            if form.startswith(x):
+                return x, form[len(x):]
+        return None, form
+
+
+class Gwa(singleton_particle(CombinationalParticle)):
+
+    __slots__ = ()
+
+    form1 = u'과'
+    form2 = u'와'
+
+    def allomorph(self, coda, form):
+        matched_prefix, suffix = self.match(form)
+        if matched_prefix is None:
+            return None
+        prefix = Particle.allomorph(self, coda)
+        return prefix + suffix
+
+
+class Euro(singleton_particle(CombinationalParticle)):
     """Particles starting with "으로" have a special allomorphic rule after
     coda "ㄹ".  "으로" can also be extended with some of suffixes such as
     "으로서", "으로부터".
     """
 
-    __slots__ = DEFAULT_SLOTS
+    __slots__ = ()
 
-    form1 = u'으'
-    form2 = u''
-
-    #: Matches with initial "으" or "(으)" before "로".
-    PREFIX_PATTERN = re.compile(u'^(으|\(으\))?로')
+    form1 = u'으로'
+    form2 = u'로'
 
     def allomorph(self, coda, form):
-        m = self.PREFIX_PATTERN.match(form)
-        if not m:
-            # The given form doesn't start with "(으)로".  Don't handle.
-            return
-        # Remove initial "으" or "(으)" to make a suffix.
-        suffix = form[max(0, m.end(1)):]
+        matched_prefix, suffix = self.match(form)
+        if matched_prefix is None:
+            return None
         if coda is None:
             prefix = self.tolerance
         elif coda and coda != u'ㄹ':
@@ -189,12 +223,12 @@ class Euro(singleton_particle(InflectingParticle)):
         return prefix + suffix
 
 
-class Ida(singleton_particle(InflectingParticle)):
+class Ida(singleton_particle(ConjugationalParticle)):
     """"이다" is a verbal prticle.  Like other Korean verbs, it is also
     fusional.
     """
 
-    __slots__ = DEFAULT_SLOTS
+    __slots__ = ()
 
     form1 = u'이'
     form2 = u''
@@ -226,3 +260,6 @@ class Ida(singleton_particle(InflectingParticle)):
                 next_letter = join_phonemes(u'ㅇ', next_nucleus, next_coda)
                 suffix = next_letter + suffix[1:]
         return Particle.allomorph(self, coda) + suffix
+
+    def match(self, form):
+        raise NotImplementedError

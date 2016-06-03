@@ -82,6 +82,11 @@ def test_euro(f):
     assert f(u'{:ko((으)로부터의):{}} 편지', u'그녀') == u'그녀로부터의 편지'
 
 
+def test_gwaneun(f):
+    assert f(u'{:과는} 별개로', u'그것') == u'그것과는 별개로'
+    assert f(u'{:과는} 별개로', u'그 친구') == u'그 친구와는 별개로'
+
+
 def test_exceptions(f):
     # Empty.
     assert f(u'{:를}', u'') == u'을(를)'
