@@ -62,6 +62,8 @@ def test_implicit(f):
     assert f(u'{:ㄱ나니?}', u'서태지') == u'서태지'
     # All option letters have to be Hangul.
     assert f(u'{:을!}', u'서태지') == u'서태지'
+    # () is ok.
+    assert f(u'{:을(를)}', u'서태지') == u'서태지를'
 
 
 def test_euro(f):
