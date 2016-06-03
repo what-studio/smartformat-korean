@@ -14,7 +14,7 @@ import re
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import Euro, Gwa, Ida, Particle
+from .particles import CombinationalParticle, Euro, Ida, Particle
 
 
 __all__ = ['ko']
@@ -33,7 +33,7 @@ PARTICLES = [
 ]
 
 #: Allomorphic Korean particles with special rules.
-SPECIAL_PARTICLES = [Gwa, Euro, Ida]
+SPECIAL_PARTICLES = [CombinationalParticle(u'과', u'와'), Euro, Ida]
 
 #: Matches to particles which have no allomorphic rules.
 INVARIANT_PARTICLE_PATTERN = re.compile(

@@ -19,8 +19,8 @@ from .coda import guess_coda
 from .hangul import join_phonemes, split_phonemes
 
 
-__all__ = ['combine_tolerances', 'Euro', 'Gwa', 'Ida', 'Particle',
-           'SpecialParticle']
+__all__ = ['CombinationalParticle', 'ConjugationalParticle',
+           'combine_tolerances', 'Euro', 'Ida', 'Particle']
 
 
 def combine_tolerances(form1, form2):
@@ -137,27 +137,20 @@ class SingletonParticleMeta(ParticleMeta):
         return cls()
 
 
-def singleton_particle(*bases):
-    return with_metaclass(SingletonParticleMeta, *bases)
-
-
-class SpecialParticle(Particle):
-    """The base class for special particles which have uncommon allomorphic
-    rule.
-    """
+class SingletonParticle(Particle):
 
     # Concrete classes should set these strings.
     form1 = form2 = NotImplemented
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         pass
 
-    def __repr__(self):
-        arg = self.__class__.__name__ if PY2 else self.tolerance
-        return '<Particle(special): %s>' % arg
+
+def singleton_particle(*bases):
+    return with_metaclass(SingletonParticleMeta, SingletonParticle, *bases)
 
 
-class ConjugationalParticle(SpecialParticle):
+class ConjugationalParticle(Particle):
     """Conjugational particles have inflections."""
 
     def __getitem__(self, word_or_word_form):
@@ -178,18 +171,10 @@ class CombinationalParticle(ConjugationalParticle):
     """More letters can be placed after combinational particles."""
 
     def match(self, form):
-        for x in self:
+        for x in sorted(self, key=len, reverse=True):
             if form.startswith(x):
                 return x, form[len(x):]
         return None, form
-
-
-class Gwa(singleton_particle(CombinationalParticle)):
-
-    __slots__ = ()
-
-    form1 = u'과'
-    form2 = u'와'
 
     def allomorph(self, coda, form):
         matched_prefix, suffix = self.match(form)

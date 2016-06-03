@@ -85,8 +85,9 @@ def test_euro(f):
 
 
 def test_gwaneun(f):
-    assert f(u'{:과는} 별개로', u'그것') == u'그것과는 별개로'
     assert f(u'{:과는} 별개로', u'그 친구') == u'그 친구와는 별개로'
+    assert f(u'{:와는} 별개로', u'그것') == u'그것과는 별개로'
+    assert f(u'{:과(와)는} 별개로', u'사건') == u'사건과는 별개로'
 
 
 def test_exceptions(f):
