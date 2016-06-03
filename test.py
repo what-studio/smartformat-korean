@@ -115,6 +115,7 @@ def test_insignificant(f):
     assert f(u'{:이었다}.', u'폭탄(가짜)...') == u'폭탄(가짜)...이었다.'
     assert f(u'{:으로}', u'16(7)?!') == u'16(7)?!으로'
     assert f(u'{:으로}', u'7(16)?!') == u'7(16)?!로'
+    assert f(u'{:를}', u'검색\ue000') == u'검색\ue000을'
 
 
 def test_vocative_particles(f):

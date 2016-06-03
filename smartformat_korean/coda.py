@@ -42,9 +42,10 @@ def guess_coda(word):
     return pick_coda_from_letter(word[-1])
 
 
-# Patterns which match to insignificant letters at the end of words.
+# Patterns which match to significant or insignificant letters at the end of
+# words.
 INSIGNIFICANT_PARENTHESIS_PATTERN = re.compile(r'\(.*?\)$')
-INSIGNIFICANT_UNICODE_CATEGORY_PATTERN = re.compile(r'^([PZ].|Sk)$')
+SIGNIFICANT_UNICODE_CATEGORY_PATTERN = re.compile(r'^([LN].|S[cmo])$')
 
 
 def filter_only_significant(word):
@@ -71,7 +72,7 @@ def filter_only_significant(word):
             continue
         # Skip unreadable characters such as punctuations.
         unicode_category = unicodedata.category(l)
-        if INSIGNIFICANT_UNICODE_CATEGORY_PATTERN.match(unicode_category):
+        if not SIGNIFICANT_UNICODE_CATEGORY_PATTERN.match(unicode_category):
             continue
         break
     return word[:x + 1]
