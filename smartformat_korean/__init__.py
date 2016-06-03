@@ -84,18 +84,20 @@ def ko(formatter, value, name, option, format):
         # Invariant particle given.
         suffix = option
     else:
+        word = value
         try:
             # Choose a known allmorphic particle.
             particle = _particle_index[option]
         except KeyError:
             # Choose a special allmorphic particle
             # which doesn't return ``None``.
+            form = option
             for particle in SPECIAL_PARTICLES:
-                suffix = particle(word=value, form=option)
+                suffix = particle[word:form]
                 if suffix is not None:
                     break
             else:
                 raise ValueError('Invalid Korean particle: %r' % option)
         else:
-            suffix = particle(word=value)
+            suffix = particle[word]
     return formatter.format(format, value) + suffix

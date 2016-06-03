@@ -9,106 +9,17 @@
    :license: BSD, see LICENSE for more details.
 
 """
-from bisect import bisect_right
-from decimal import Decimal
 import itertools
 import re
-import unicodedata
 
 from bidict import bidict
 from six import PY2, python_2_unicode_compatible, with_metaclass
 
+from .coda import guess_coda
 from .hangul import join_phonemes, split_phonemes
 
 
-__all__ = ['combine_tolerances', 'Euro', 'Ida', 'Particle', 'pick_coda',
-           'pick_coda_from_decimal', 'SpecialParticle']
-
-
-def pick_coda(letter):
-    """Picks only a coda from a Hangul letter.  It returns ``None`` if the
-    given letter is not Hangul.
-    """
-    try:
-        __, __, coda = \
-            split_phonemes(letter, onset=False, nucleus=False, coda=True)
-    except ValueError:
-        return None
-    else:
-        return coda
-
-
-#: Matches to a decimal at the end of a word.
-DECIMAL_PATTERN = re.compile(r'[0-9]+(\.[0-9]+)?$')
-
-
-# Data for picking coda from a decimal.
-DIGITS = u'영일이삼사오육칠팔구'
-EXPS = {1: u'십', 2: u'백', 3: u'천', 4: u'만',
-        8: u'억', 12: u'조', 16: u'경', 20: u'해',
-        24: u'자', 28: u'양', 32: u'구', 36: u'간',
-        40: u'정', 44: u'재', 48: u'극', 52: u'항하사',
-        56: u'아승기', 60: u'나유타', 64: u'불가사의', 68: u'무량대수',
-        72: u'겁', 76: u'업'}
-DIGIT_CODAS = [pick_coda(x[-1]) for x in DIGITS]
-EXP_CODAS = {exp: pick_coda(x[-1]) for exp, x in EXPS.items()}
-EXP_INDICES = list(sorted(EXPS.keys()))
-
-
-# Mark the first unreadable exponent.
-_unreadable_exp = max(EXP_INDICES) + 4
-EXP_CODAS[_unreadable_exp] = None
-EXP_INDICES.append(_unreadable_exp)
-del _unreadable_exp
-
-
-def pick_coda_from_decimal(decimal):
-    """Picks only a coda from a decimal."""
-    decimal = Decimal(decimal)
-    __, digits, exp = decimal.as_tuple()
-    if exp < 0:
-        return DIGIT_CODAS[digits[-1]]
-    __, digits, exp = decimal.normalize().as_tuple()
-    index = bisect_right(EXP_INDICES, exp) - 1
-    if index < 0:
-        return DIGIT_CODAS[digits[-1]]
-    else:
-        return EXP_CODAS[EXP_INDICES[index]]
-
-
-# Patterns which match to insignificant letters at the end of words.
-INSIGNIFICANT_PARENTHESIS_PATTERN = re.compile(r'\(.*?\)$')
-INSIGNIFICANT_UNICODE_CATEGORY_PATTERN = re.compile(r'^([PZ].|Sk)$')
-
-
-def pick_significant(word):
-    """Gets a word which removes insignificant letters at the end of the given
-    word::
-
-    >>> pick_significant(u'넥슨(코리아)')
-    넥슨
-    >>> pick_significant(u'메이플스토리...')
-    메이플스토리
-
-    """
-    if not word:
-        return word
-    x = len(word)
-    while x > 0:
-        x -= 1
-        l = word[x]
-        # Skip a complete parenthesis.
-        if l == u')':
-            m = INSIGNIFICANT_PARENTHESIS_PATTERN.search(word[:x + 1])
-            if m is not None:
-                x = m.start()
-            continue
-        # Skip unreadable characters such as punctuations.
-        unicode_category = unicodedata.category(l)
-        if INSIGNIFICANT_UNICODE_CATEGORY_PATTERN.match(unicode_category):
-            continue
-        break
-    return word[:x + 1]
+__all__ = ['combine_tolerances', 'Euro', 'Ida', 'Particle', 'SpecialParticle']
 
 
 def combine_tolerances(form1, form2):
@@ -137,6 +48,9 @@ def combine_tolerances(form1, form2):
         yield u'(%s)%s' % (form1, form2)
 
 
+DEFAULT_SLOTS = ('_tolerance',)
+
+
 @python_2_unicode_compatible
 class Particle(object):
     """Represents a Korean allomorphic particle as known as "조사".
@@ -147,7 +61,7 @@ class Particle(object):
 
     """
 
-    __slots__ = ('form1', 'form2', '_tolerance')
+    __slots__ = ('form1', 'form2') + DEFAULT_SLOTS
 
     def __init__(self, form1, form2):
         self.form1 = form1
@@ -164,28 +78,37 @@ class Particle(object):
         """Yields all reasonable tolerant forms."""
         return combine_tolerances(self.form1, self.form2)
 
-    def __call__(self, word, *args, **kwargs):
-        """Selects an allomorphic form for the given word."""
-        word = pick_significant(word)
-        decimal_match = DECIMAL_PATTERN.search(word)
-        if decimal_match:
-            coda = pick_coda_from_decimal(decimal_match.group(0))
-        else:
-            coda = pick_coda(word[-1]) if word else None
-        return self.allomorph(coda, *args, **kwargs)
-
-    def __iter__(self):
-        """Iterates for all allomorphic forms."""
-        return itertools.chain([self.form1, self.form2], self.tolerances())
-
     def allomorph(self, coda):
-        """Determines one of allomorphic forms based on a Hangul jongseung."""
+        """Determines one of allomorphic forms based on a coda."""
         if coda is None:
             return self.tolerance
         elif coda:
             return self.form1
         else:
             return self.form2
+
+    def allomorph_by_word(self, word, *args, **kwargs):
+        """Determines one of allomorphic forms based on a word.
+
+        .. see also:: :meth:`allomorph`.
+
+        """
+        return self.allomorph(guess_coda(word), *args, **kwargs)
+
+    def __getitem__(self, word):
+        """The syntax sugar to determine one of allomorphic forms based on a
+        word::
+
+           eun = Particle(u'은', u'는')
+           assert eun[u'나오'] == u'는'
+           assert eun[u'모리안'] == u'은'
+
+        """
+        return self.allomorph_by_word(word)
+
+    def __iter__(self):
+        """Iterates for all allomorphic forms."""
+        return itertools.chain([self.form1, self.form2], self.tolerances())
 
     def __str__(self):
         return self.tolerance
@@ -194,25 +117,25 @@ class Particle(object):
         return '<Particle: ' + (repr if PY2 else str)(self.tolerance) + '>'
 
 
-class SpecialParticleMeta(type):
+class SingletonParticleMeta(type):
 
     def __new__(meta, name, bases, attrs):
-        if '__slots__' in attrs:
-            attrs['__slots__'] += ('_tolerance',)
-        base_meta = super(SpecialParticleMeta, meta)
+        base_meta = super(SingletonParticleMeta, meta)
         cls = base_meta.__new__(meta, name, bases, attrs)
-        if bases == (Particle,):
-            return cls
+        if not issubclass(cls, Particle):
+            raise TypeError('Not particle class')
         # Instantiate directly instead of returning a class.
         return cls()
 
 
-class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
+def singleton_particle(*bases):
+    return with_metaclass(SingletonParticleMeta, *bases)
+
+
+class SpecialParticle(Particle):
     """The base class for special particles which have uncommon allomorphic
     rule.
     """
-
-    __slots__ = ()
 
     # Concrete classes should set these strings.
     form1 = form2 = NotImplemented
@@ -220,21 +143,29 @@ class SpecialParticle(with_metaclass(SpecialParticleMeta, Particle)):
     def __init__(self, *args, **kwargs):
         pass
 
-    def __call__(self, word, form):
-        return super(SpecialParticle, self).__call__(word, form)
-
     def __repr__(self):
         arg = self.__class__.__name__ if PY2 else self.tolerance
         return '<Particle(special): %s>' % arg
 
 
-class Euro(SpecialParticle):
+class InflectingParticle(SpecialParticle):
+    """The base class for special particles but can be inflected."""
+
+    def __getitem__(self, word_and_form):
+        word, form = word_and_form.start, word_and_form.stop,
+        return self.allomorph_by_word(word, form)
+
+    def allomorph(self, coda, form):
+        raise NotImplementedError
+
+
+class Euro(singleton_particle(InflectingParticle)):
     """Particles starting with "으로" have a special allomorphic rule after
     coda "ㄹ".  "으로" can also be extended with some of suffixes such as
     "으로서", "으로부터".
     """
 
-    __slots__ = ()
+    __slots__ = DEFAULT_SLOTS
 
     form1 = u'으'
     form2 = u''
@@ -258,12 +189,12 @@ class Euro(SpecialParticle):
         return prefix + suffix
 
 
-class Ida(SpecialParticle):
+class Ida(singleton_particle(InflectingParticle)):
     """"이다" is a verbal prticle.  Like other Korean verbs, it is also
     fusional.
     """
 
-    __slots__ = ()
+    __slots__ = DEFAULT_SLOTS
 
     form1 = u'이'
     form2 = u''

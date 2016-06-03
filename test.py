@@ -2,9 +2,9 @@
 import pytest
 from smartformat import SmartFormatter
 from smartformat.ext.korean import ko
+from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
-from smartformat.ext.korean.particles import (
-    combine_tolerances, pick_coda_from_decimal)
+from smartformat.ext.korean.particles import combine_tolerances
 
 
 @pytest.fixture
