@@ -14,7 +14,7 @@ import re
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import CombinationalParticle, Euro, Ida, Particle
+from .particles import CombinableParticle, Euro, Ida, Particle
 
 
 __all__ = ['ko']
@@ -30,24 +30,23 @@ PARTICLES = [
     Particle(u'아', u'야'),
     Particle(u'이여', u'여'),
     Particle(u'이시여', u'시여'),
+    CombinableParticle(u'과', u'와'),
+    Euro,
 ]
-
-#: Allomorphic Korean particles with special rules.
-SPECIAL_PARTICLES = [CombinationalParticle(u'과', u'와'), Euro, Ida]
 
 #: Matches to particles which have no allomorphic rules.
 INVARIANT_PARTICLE_PATTERN = re.compile(
-    u'^([의도]$|만|보다|부터|까지|마저|조차|에|께|하)'
+    u'^([의도]$|만|보다|부터|까지|마저|마냥|조차|처럼|에|께|하고)'
 )
 
 
-# Index particles by their forms.
-_particle_index = {}
-for p in PARTICLES:
-    for form in p:
-        if form in _particle_index:
-            raise KeyError('Form %r duplicated' % form)
-        _particle_index[form] = p
+patterns = []
+_particles = {}
+for x, p in enumerate(PARTICLES):
+    group = u'_%d' % x
+    _particles[group] = p
+    patterns.append(u'(?P<%s>%s)' % (group, p.regex_pattern()))
+_particle_pattern = re.compile(u'|'.join(patterns))
 
 
 @extension(['ko', ''])
@@ -73,9 +72,7 @@ def ko(formatter, value, name, option, format):
             format = u''
         else:
             option, format = format, u'{}'
-        if option in _particle_index:
-            pass
-        elif not option or not all(is_hangul(l) or l in u'()' for l in option):
+        if not option or not all(is_hangul(l) or l in u'()' for l in option):
             # All option letters have to be Hangul
             # to use this extension implicitly.
             return
@@ -83,20 +80,10 @@ def ko(formatter, value, name, option, format):
         # Invariant particle given.
         suffix = option
     else:
-        word = value
-        try:
-            # Choose a known allmorphic particle.
-            particle = _particle_index[option]
-        except KeyError:
-            # Choose a special allmorphic particle
-            # which doesn't return ``None``.
-            form = option
-            for particle in SPECIAL_PARTICLES:
-                suffix = particle.allomorph_by_word(word, form)
-                if suffix is not None:
-                    break
-            else:
-                raise ValueError('Invalid Korean particle: %r' % option)
+        m = _particle_pattern.match(option)
+        if m is None:
+            particle = Ida
         else:
-            suffix = particle.allomorph_by_word(word)
+            particle = _particles[m.lastgroup]
+        suffix = particle[value:option]
     return formatter.format(format, value) + suffix

@@ -4,7 +4,8 @@ from smartformat import SmartFormatter
 from smartformat.ext.korean import ko
 from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
-from smartformat.ext.korean.particles import combine_tolerances
+from smartformat.ext.korean.particles import (
+    CombinableParticle, generate_tolerances, Euro, Particle)
 
 
 @pytest.fixture
@@ -35,14 +36,14 @@ def test_join_phonemes():
 
 
 def test_particle_tolerances():
-    c = lambda _1, _2: set(combine_tolerances(_1, _2))
+    t = lambda _1, _2: set(generate_tolerances(_1, _2))
     s = lambda x: set(x.split())
-    assert c(u'이', u'가') == s(u'이(가) (이)가 가(이) (가)이')
-    assert c(u'이', u'') == s(u'(이)')
-    assert c(u'으로', u'로') == s(u'(으)로')
-    assert c(u'이여', u'여') == s(u'(이)여')
-    assert c(u'이시여', u'시여') == s(u'(이)시여')
-    assert c(u'아', u'야') == s(u'아(야) (아)야 야(아) (야)아')
+    assert t(u'이', u'가') == s(u'이(가) (이)가 가(이) (가)이')
+    assert t(u'이', u'') == s(u'(이)')
+    assert t(u'으로', u'로') == s(u'(으)로')
+    assert t(u'이여', u'여') == s(u'(이)여')
+    assert t(u'이시여', u'시여') == s(u'(이)시여')
+    assert t(u'아', u'야') == s(u'아(야) (아)야 야(아) (야)아')
 
 
 def test_explicit(f):
@@ -82,6 +83,7 @@ def test_euro(f):
     assert f(u'{:ko(로부터):{}}', u'모리안') == u'모리안으로부터'
     assert f(u'{:ko(로부터도):{}}', u'모리안') == u'모리안으로부터도'
     assert f(u'{:ko((으)로부터의):{}} 편지', u'그녀') == u'그녀로부터의 편지'
+    assert f(u'{:ko(으론):{}}', u'밖') == u'밖으론'
 
 
 def test_combinations(f):
@@ -90,6 +92,7 @@ def test_combinations(f):
     assert f(u'{:과는} 별개로', u'그 친구') == u'그 친구와는 별개로'
     assert f(u'{:와는} 별개로', u'그것') == u'그것과는 별개로'
     assert f(u'{:과(와)는} 별개로', u'사건') == u'사건과는 별개로'
+    assert f(u'{:관} 별개로', u'그 친구') == u'그 친구완 별개로'
 
 
 def test_exceptions(f):
@@ -169,6 +172,7 @@ def test_ida(f):
     assert f(u'{:여도}', u'키홀') == u'키홀이어도'
     assert f(u'{0:나} {1:나}', u'나오', u'키홀') == u'나오나 키홀이나'
     assert f(u'{:야말로}', u'키홀') == u'키홀이야말로'
+    assert f(u'{:인양}', u'키홀') == u'키홀인양'
 
 
 def test_invariant_particles(f):
@@ -180,6 +184,9 @@ def test_invariant_particles(f):
     assert f(u'{:의}', u'나오') == u'나오의'
     assert f(u'{:만}', u'모리안') == u'모리안만'
     assert f(u'{:하고}', u'키홀') == u'키홀하고'
+    assert f(u'{:만큼}', u'콩') == u'콩만큼'
+    assert f(u'{:마냥}', u'콩') == u'콩마냥'
+    assert f(u'{:처럼}', u'콩') == u'콩처럼'
 
 
 def test_tolerances(f):
@@ -211,3 +218,29 @@ def test_decimal(f):
     assert pick_coda_from_decimal('1.0') == u'ㅇ'
     assert pick_coda_from_decimal('1.234567890') == u'ㅇ'
     assert pick_coda_from_decimal('3.14') == u''
+
+
+def test_match():
+    # (n)eun
+    eun = Particle(u'은', u'는')
+    assert eun.match(u'은') == u''
+    assert eun.match(u'는') == u''
+    assert eun.match(u'은(는)') == u''
+    assert eun.match(u'는(은)') == u''
+    assert eun.match(u'(은)는') == u''
+    assert eun.match(u'(는)은') == u''
+    assert eun.match(u'는는') is None
+    # (g)wa
+    gwa = CombinableParticle(u'과', u'와')
+    assert gwa.match(u'과') == u''
+    assert gwa.match(u'과는') == u'는'
+    assert gwa.match(u'관') == u'ㄴ'
+    # (eu)ro
+    assert Euro.match(u'으로도') == u'도'
+    assert Euro.match(u'론') == u'ㄴ'
+
+
+def test_combine():
+    assert Euro[u'집':u'로'] == u'으로'
+    assert Euro[u'집':u'론'] == u'으론'
+    assert Euro[u'집':u'로는'] == u'으로는'

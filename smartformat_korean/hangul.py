@@ -72,3 +72,26 @@ def split_phonemes(letter, onset=True, nucleus=True, coda=True):
     if coda:
         phonemes[2] = CODAS[offset % NUM_CODAS]
     return tuple(phonemes)
+
+
+def detach_prefix(prefix, word):
+    prefix_onset, prefix_nucleus, prefix_coda = split_phonemes(prefix[-1])
+    if prefix_coda:
+        __, __, suffix = word.partition(prefix)
+    else:
+        suffix_first = word[len(prefix) - 1]
+        suffix_onset, suffix_nucleus, suffix_coda = \
+            split_phonemes(suffix_first)
+        if (prefix_onset, prefix_nucleus) != (suffix_onset, suffix_nucleus):
+            raise ValueError
+        suffix = suffix_coda + word[len(prefix):]
+    return prefix, suffix
+
+
+def combine_words(word1, word2):
+    if word2 and u'ㄱ' <= word2[0] <= u'ㅎ':
+        onset, nucleus, coda = split_phonemes(word1[-1])
+        if not coda:
+            glue = join_phonemes(onset, nucleus, word2[0])
+            return word1[:-1] + glue + word2[1:]
+    return word1 + word2
