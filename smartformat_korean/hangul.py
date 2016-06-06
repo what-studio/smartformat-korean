@@ -74,21 +74,17 @@ def split_phonemes(letter, onset=True, nucleus=True, coda=True):
     return tuple(phonemes)
 
 
-def detach_prefix(prefix, word):
-    prefix_onset, prefix_nucleus, prefix_coda = split_phonemes(prefix[-1])
-    if prefix_coda:
-        __, __, suffix = word.partition(prefix)
-    else:
-        suffix_first = word[len(prefix) - 1]
-        suffix_onset, suffix_nucleus, suffix_coda = \
-            split_phonemes(suffix_first)
-        if (prefix_onset, prefix_nucleus) != (suffix_onset, suffix_nucleus):
-            raise ValueError
-        suffix = suffix_coda + word[len(prefix):]
-    return prefix, suffix
-
-
 def combine_words(word1, word2):
+    """Combines two words.  If the first word ends with a vowel and the initial
+    letter of the second word is only consonant, it merges them into one
+    letter::
+
+    >>> combine_words(u'다', u'ㄺ')
+    닭
+    >>> combine_words(u'가오', u'ㄴ누리')
+    가온누리
+
+    """
     if word2 and u'ㄱ' <= word2[0] <= u'ㅎ':
         onset, nucleus, coda = split_phonemes(word1[-1])
         if not coda:
