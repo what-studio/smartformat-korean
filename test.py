@@ -173,6 +173,7 @@ def test_ida(f):
     assert f(u'{0:나} {1:나}', u'나오', u'키홀') == u'나오나 키홀이나'
     assert f(u'{:야말로}', u'키홀') == u'키홀이야말로'
     assert f(u'{:인양}', u'키홀') == u'키홀인양'
+    assert f(u'{:인양}', u'나오') == u'나오인양'
 
 
 def test_invariant_particles(f):

@@ -32,6 +32,9 @@ def generate_tolerances(form1, form2):
     set([u'(이)면'])
 
     """
+    if form1 == form2:
+        # Tolerance not required.
+        return
     if not (form1 and form2):
         # Null allomorph exists.
         yield u'(%s)' % (form1 or form2)
@@ -59,12 +62,19 @@ class ParticleMeta(type):
 
 @python_2_unicode_compatible
 class Particle(with_metaclass(ParticleMeta)):
+    """Represents a Korean allomorphic particle as known as "조사".
+
+    This also implements the general allomorphic rule for most common
+    particles.  If some particle has a exceptional rule, inherit
+    :class:`SpecialParticle` instead.
+
+    """
 
     __slots__ = ('form1', 'form2')
 
-    def __init__(self, form1, form2):
+    def __init__(self, form1, form2=None):
         self.form1 = form1
-        self.form2 = form2
+        self.form2 = form1 if form2 is None else form2
 
     @cached_property
     def tolerance(self):
@@ -82,8 +92,14 @@ class Particle(with_metaclass(ParticleMeta)):
 
     @cached_property
     def forms(self):
-        forms = chain(filter(bool, [self.form1, self.form2]), self.tolerances)
-        return sorted(forms, key=len, reverse=True)
+        """The tuple containing the given forms and all the possible tolerant
+        forms.  Longer is first.
+        """
+        seen = set()
+        saw = seen.add
+        forms = chain([self.form1, self.form2], self.tolerances)
+        unique_forms = (x for x in forms if x and not (x in seen or saw(x)))
+        return tuple(sorted(unique_forms, key=len, reverse=True))
 
     def rule(self, coda):
         """Determines one of allomorphic forms based on a coda."""
@@ -150,13 +166,6 @@ class Particle(with_metaclass(ParticleMeta)):
 
 
 class CombinableParticle(Particle):
-    """Represents a Korean allomorphic particle as known as "조사".
-
-    This also implements the general allomorphic rule for most common
-    particles.  If some particle has a exceptional rule, inherit
-    :class:`SpecialParticle` instead.
-
-    """
 
     def match(self, form):
         m = self.regex.match(form)

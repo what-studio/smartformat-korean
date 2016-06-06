@@ -20,27 +20,37 @@ from .particles import CombinableParticle, Euro, Ida, Particle
 __all__ = ['ko']
 
 
-#: Allomorphic Korean particles with the general rule.
+#: Known Korean particles.
 PARTICLES = [
     # Simple allomorphic rule.
     Particle(u'은', u'는'),
     Particle(u'이', u'가'),
     Particle(u'을', u'를'),
+    CombinableParticle(u'과', u'와'),
+    # Special rule after 'ㄹ'.
+    Euro,
     # Vocative particles.
     Particle(u'아', u'야'),
     Particle(u'이여', u'여'),
     Particle(u'이시여', u'시여'),
-    CombinableParticle(u'과', u'와'),
-    Euro,
+    # Invariant particles.
+    Particle(u'의'),
+    Particle(u'도'),
+    CombinableParticle(u'만'),
+    CombinableParticle(u'에'),
+    CombinableParticle(u'께'),
+    CombinableParticle(u'뿐'),
+    CombinableParticle(u'보다'),
+    CombinableParticle(u'밖에'),
+    CombinableParticle(u'같이'),
+    CombinableParticle(u'부터'),
+    CombinableParticle(u'까지'),
+    CombinableParticle(u'마저'),
+    CombinableParticle(u'조차'),
+    CombinableParticle(u'마냥'),
+    CombinableParticle(u'처럼'),
+    CombinableParticle(u'하고'),
 ]
-
-#: Matches to particles which have no allomorphic rules.
-INVARIANT_PARTICLE_PATTERN = re.compile(
-    u'^([의도]$|만|보다|밖에|같이|부터|까지'
-    u'|마저|마냥|조차|처럼|에|께|하고|뿐|대로)'
-)
-
-
 patterns = []
 _particles = {}
 for x, p in enumerate(PARTICLES):
@@ -77,14 +87,10 @@ def ko(formatter, value, name, option, format):
             # All option letters have to be Hangul
             # to use this extension implicitly.
             return
-    if INVARIANT_PARTICLE_PATTERN.match(option):
-        # Invariant particle given.
-        suffix = option
+    m = _particle_pattern.match(option)
+    if m is None:
+        particle = Ida
     else:
-        m = _particle_pattern.match(option)
-        if m is None:
-            particle = Ida
-        else:
-            particle = _particles[m.lastgroup]
-        suffix = particle[value:option]
+        particle = _particles[m.lastgroup]
+    suffix = particle[value:option]
     return formatter.format(format, value) + suffix
