@@ -5,7 +5,7 @@ from smartformat.ext.korean import ko
 from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
 from smartformat.ext.korean.particles import (
-    CombinableParticle, generate_tolerances, Euro, Particle)
+    CombinableParticle, Euro, generate_tolerances, Particle)
 
 
 @pytest.fixture
