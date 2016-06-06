@@ -177,8 +177,8 @@ class CombinableParticle(Particle):
                 coda = None
             if coda == u'':
                 start = form[-1]
-                end = join_phonemes(onset, nucleus, 'ㅎ')
-                pattern = re.escape(form[:-1]) + '[%s-%s]' % (start, end)
+                end = join_phonemes(onset, nucleus, u'ㅎ')
+                pattern = re.escape(form[:-1]) + u'[%s-%s]' % (start, end)
             else:
                 pattern = re.escape(form)
             patterns.append(pattern)
