@@ -146,18 +146,6 @@ class Particle(with_metaclass(ParticleMeta)):
             word, form = key, self.form1
         return self.allomorph(word, form)
 
-    def _get_form(self, index):
-        if index == 0:
-            return self.form1
-        elif index == 1:
-            return self.form1
-        else:
-            return self.tolerances[index - 2]
-
-    def __iter__(self):
-        """Iterates for all allomorphic forms."""
-        return iter(self.forms)
-
     def __str__(self):
         return self.tolerance
 
