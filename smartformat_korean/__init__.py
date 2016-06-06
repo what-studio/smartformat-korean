@@ -36,7 +36,8 @@ PARTICLES = [
 
 #: Matches to particles which have no allomorphic rules.
 INVARIANT_PARTICLE_PATTERN = re.compile(
-    u'^([의도]$|만|보다|부터|까지|마저|마냥|조차|처럼|에|께|하고)'
+    u'^([의도]$|만|보다|밖에|같이|부터|까지'
+    u'|마저|마냥|조차|처럼|에|께|하고|뿐|대로)'
 )
 
 
