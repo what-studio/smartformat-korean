@@ -69,11 +69,12 @@ class Particle(with_metaclass(ParticleMeta)):
 
     """
 
-    __slots__ = ('form1', 'form2')
+    __slots__ = ('form1', 'form2', 'final')
 
-    def __init__(self, form1, form2=None):
+    def __init__(self, form1, form2=None, final=False):
         self.form1 = form1
         self.form2 = form1 if form2 is None else form2
+        self.final = final
 
     @cached_property
     def tolerance(self):
@@ -126,12 +127,14 @@ class Particle(with_metaclass(ParticleMeta)):
         if m is None:
             return None
         x = m.end()
-        if m.group() == self.forms[m.lastindex - 1]:
+        if self.final or m.group() == self.forms[m.lastindex - 1]:
             return form[x:]
         coda = pick_coda_from_letter(form[x - 1])
         return coda + form[x + 1:]
 
     def regex_pattern(self):
+        if self.final:
+            return u'^(?:%s)$' % u'|'.join(re.escape(f) for f in self.forms)
         patterns = []
         for form in self.forms:
             try:
@@ -169,19 +172,6 @@ class Particle(with_metaclass(ParticleMeta)):
         return '<Particle: ' + (repr if PY2 else str)(self.tolerance) + '>'
 
 
-class FinalParticle(Particle):
-    """Represents a Korean particle which doesn't allow following particles."""
-
-    def match(self, form):
-        m = self.regex.match(form)
-        if m is None:
-            return None
-        return form[m.end():]
-
-    def regex_pattern(self):
-        return u'^(?:%s)$' % u'|'.join(re.escape(f) for f in self.forms)
-
-
 class SingletonParticleMeta(ParticleMeta):
 
     def __new__(meta, name, bases, attrs):
@@ -196,7 +186,7 @@ class SingletonParticleMeta(ParticleMeta):
 class SingletonParticle(Particle):
 
     # Concrete classes should set these strings.
-    form1 = form2 = NotImplemented
+    form1 = form2 = final = NotImplemented
 
     def __init__(self):
         pass
@@ -219,6 +209,7 @@ class Euro(singleton_particle(Particle)):
 
     form1 = u'으로'
     form2 = u'로'
+    final = False
 
     def rule(self, coda):
         if coda is None:
@@ -238,6 +229,7 @@ class Ida(singleton_particle(Particle)):
 
     form1 = u'이'
     form2 = u''
+    final = False
 
     #: Matches with initial "이" or "(이)" to normalize fusioned verbal forms.
     I_PATTERN = re.compile(u'^이|\(이\)')
