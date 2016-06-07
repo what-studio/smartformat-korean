@@ -285,3 +285,13 @@ def test_igyuho2006(f):
     assert ff(u'이든지') == (u'남이든지', u'나든지')
     assert ff(u'인가') == (u'남인가', u'나인가')
     assert ff(u'인지') == (u'남인지', u'나인지')
+    # p188-189:
+    assert ff(u'인') == (u'남인', u'나인')
+    assert ff(u'는') == (u'남은', u'나는')
+    assert ff(u'이라는') == (u'남이라는', u'나라는')
+    assert ff(u'이네') == (u'남이네', u'나네')
+    assert ff(u'도') == (u'남도', u'나도')
+    assert ff(u'이면서') == (u'남이면서', u'나면서')
+    assert ff(u'이자') == (u'남이자', u'나자')
+    assert ff(u'하고도') == (u'남하고도', u'나하고도')
+    assert ff(u'이냐') == (u'남이냐', u'나냐')
