@@ -5,7 +5,7 @@ from smartformat.ext.korean import ko
 from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
 from smartformat.ext.korean.particles import (
-    CombinableParticle, Euro, generate_tolerances, Particle)
+    Euro, FinalParticle, generate_tolerances, Particle)
 
 
 @pytest.fixture
@@ -223,7 +223,7 @@ def test_decimal(f):
 
 def test_match():
     # (n)eun
-    eun = Particle(u'은', u'는')
+    eun = FinalParticle(u'은', u'는')
     assert eun.match(u'은') == u''
     assert eun.match(u'는') == u''
     assert eun.match(u'은(는)') == u''
@@ -232,7 +232,7 @@ def test_match():
     assert eun.match(u'(는)은') == u''
     assert eun.match(u'는는') is None
     # (g)wa
-    gwa = CombinableParticle(u'과', u'와')
+    gwa = Particle(u'과', u'와')
     assert gwa.match(u'과') == u''
     assert gwa.match(u'과는') == u'는'
     assert gwa.match(u'관') == u'ㄴ'

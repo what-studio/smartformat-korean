@@ -14,7 +14,7 @@ import re
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import CombinableParticle, Euro, Ida, Particle
+from .particles import Euro, FinalParticle, Ida, Particle
 
 
 __all__ = ['ko']
@@ -23,33 +23,33 @@ __all__ = ['ko']
 #: Known Korean particles.
 PARTICLES = [
     # Simple allomorphic rule.
-    Particle(u'은', u'는'),
-    Particle(u'이', u'가'),
-    Particle(u'을', u'를'),
-    CombinableParticle(u'과', u'와'),
+    FinalParticle(u'은', u'는'),
+    FinalParticle(u'이', u'가'),
+    FinalParticle(u'을', u'를'),
+    Particle(u'과', u'와'),
     # Special rule after 'ㄹ'.
     Euro,
     # Vocative particles.
-    Particle(u'아', u'야'),
-    Particle(u'이여', u'여'),
-    Particle(u'이시여', u'시여'),
+    FinalParticle(u'아', u'야'),
+    FinalParticle(u'이여', u'여'),
+    FinalParticle(u'이시여', u'시여'),
     # Invariant particles.
-    Particle(u'의'),
-    Particle(u'도'),
-    CombinableParticle(u'만'),
-    CombinableParticle(u'에'),
-    CombinableParticle(u'께'),
-    CombinableParticle(u'뿐'),
-    CombinableParticle(u'보다'),
-    CombinableParticle(u'밖에'),
-    CombinableParticle(u'같이'),
-    CombinableParticle(u'부터'),
-    CombinableParticle(u'까지'),
-    CombinableParticle(u'마저'),
-    CombinableParticle(u'조차'),
-    CombinableParticle(u'마냥'),
-    CombinableParticle(u'처럼'),
-    CombinableParticle(u'하고'),
+    FinalParticle(u'의'),
+    FinalParticle(u'도'),
+    Particle(u'만'),
+    Particle(u'에'),
+    Particle(u'께'),
+    Particle(u'뿐'),
+    Particle(u'보다'),
+    Particle(u'밖에'),
+    Particle(u'같이'),
+    Particle(u'부터'),
+    Particle(u'까지'),
+    Particle(u'마저'),
+    Particle(u'조차'),
+    Particle(u'마냥'),
+    Particle(u'처럼'),
+    Particle(u'하고'),
 ]
 patterns = []
 _particles = {}

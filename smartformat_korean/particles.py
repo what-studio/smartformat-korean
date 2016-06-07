@@ -65,8 +65,7 @@ class Particle(with_metaclass(ParticleMeta)):
     """Represents a Korean allomorphic particle as known as "조사".
 
     This also implements the general allomorphic rule for most common
-    particles.  If some particle has a exceptional rule, inherit
-    :class:`SpecialParticle` instead.
+    particles.
 
     """
 
@@ -126,10 +125,27 @@ class Particle(with_metaclass(ParticleMeta)):
         m = self.regex.match(form)
         if m is None:
             return None
-        return form[m.end():]
+        x = m.end()
+        if m.group() == self.forms[m.lastindex - 1]:
+            return form[x:]
+        coda = pick_coda_from_letter(form[x - 1])
+        return coda + form[x + 1:]
 
     def regex_pattern(self):
-        return u'^(?:%s)$' % u'|'.join(re.escape(f) for f in self.forms)
+        patterns = []
+        for form in self.forms:
+            try:
+                onset, nucleus, coda = split_phonemes(form[-1])
+            except ValueError:
+                coda = None
+            if coda == u'':
+                start = form[-1]
+                end = join_phonemes(onset, nucleus, u'ㅎ')
+                pattern = re.escape(form[:-1]) + u'[%s-%s]' % (start, end)
+            else:
+                pattern = re.escape(form)
+            patterns.append(pattern)
+        return u'^(?:%s)' % u'|'.join(u'(%s)' % p for p in patterns)
 
     def __getitem__(self, key):
         """The syntax sugar to determine one of allomorphic forms based on a
@@ -153,33 +169,17 @@ class Particle(with_metaclass(ParticleMeta)):
         return '<Particle: ' + (repr if PY2 else str)(self.tolerance) + '>'
 
 
-class CombinableParticle(Particle):
+class FinalParticle(Particle):
+    """Represents a Korean particle which doesn't allow following particles."""
 
     def match(self, form):
         m = self.regex.match(form)
         if m is None:
             return None
-        x = m.end()
-        if m.group() == self.forms[m.lastindex - 1]:
-            return form[x:]
-        coda = pick_coda_from_letter(form[x - 1])
-        return coda + form[x + 1:]
+        return form[m.end():]
 
     def regex_pattern(self):
-        patterns = []
-        for form in self.forms:
-            try:
-                onset, nucleus, coda = split_phonemes(form[-1])
-            except ValueError:
-                coda = None
-            if coda == u'':
-                start = form[-1]
-                end = join_phonemes(onset, nucleus, u'ㅎ')
-                pattern = re.escape(form[:-1]) + u'[%s-%s]' % (start, end)
-            else:
-                pattern = re.escape(form)
-            patterns.append(pattern)
-        return u'^(?:%s)' % u'|'.join(u'(%s)' % p for p in patterns)
+        return u'^(?:%s)$' % u'|'.join(re.escape(f) for f in self.forms)
 
 
 class SingletonParticleMeta(ParticleMeta):
@@ -196,17 +196,20 @@ class SingletonParticleMeta(ParticleMeta):
 class SingletonParticle(Particle):
 
     # Concrete classes should set these strings.
-    form1 = form2 = combinable = NotImplemented
+    form1 = form2 = NotImplemented
 
     def __init__(self):
         pass
 
 
 def singleton_particle(*bases):
+    """Defines a singleton instance immediately when defining the class.  The
+    name of the class will refer the instance instead.
+    """
     return with_metaclass(SingletonParticleMeta, SingletonParticle, *bases)
 
 
-class Euro(singleton_particle(CombinableParticle)):
+class Euro(singleton_particle(Particle)):
     """Particles starting with "으로" have a special allomorphic rule after
     coda "ㄹ".  "으로" can also be extended with some of suffixes such as
     "으로서", "으로부터".
