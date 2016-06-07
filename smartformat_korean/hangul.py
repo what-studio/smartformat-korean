@@ -85,7 +85,7 @@ def combine_words(word1, word2):
     가온누리
 
     """
-    if word2 and u'ㄱ' <= word2[0] <= u'ㅎ':
+    if word1 and word2 and u'ㄱ' <= word2[0] <= u'ㅎ':
         onset, nucleus, coda = split_phonemes(word1[-1])
         if not coda:
             glue = join_phonemes(onset, nucleus, word2[0])
