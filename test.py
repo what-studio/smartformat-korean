@@ -245,6 +245,7 @@ def test_combine():
     assert Euro[u'집':u'로'] == u'으로'
     assert Euro[u'집':u'론'] == u'으론'
     assert Euro[u'집':u'로는'] == u'으로는'
+    assert Euro[u'집':u'론123'] == u'으론123'
 
 
 def test_igyuho2006(f):

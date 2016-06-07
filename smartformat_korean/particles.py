@@ -147,7 +147,7 @@ class Particle(with_metaclass(ParticleMeta)):
         if self.final or m.group() == self.forms[m.lastindex - 1]:
             return form[x:]
         coda = pick_coda_from_letter(form[x - 1])
-        return coda + form[x + 1:]
+        return coda + form[x:]
 
     def regex_pattern(self):
         if self.final:
