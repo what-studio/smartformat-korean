@@ -14,7 +14,7 @@ import re
 from smartformat import extension
 
 from .hangul import is_hangul
-from .particles import Euro, FinalParticle, Ida, Particle
+from .particles import Euro, Ida, Particle
 
 
 __all__ = ['ko']
@@ -23,23 +23,20 @@ __all__ = ['ko']
 #: Known Korean particles.
 PARTICLES = [
     # Simple allomorphic rule.
-    FinalParticle(u'은', u'는'),
-    FinalParticle(u'이', u'가'),
-    FinalParticle(u'을', u'를'),
+    Particle(u'이', u'가', final=True),
+    Particle(u'을', u'를', final=True),
+    Particle(u'은', u'는'),
     Particle(u'과', u'와'),
     # Special rule after 'ㄹ'.
     Euro,
-    # Vocative particles.
-    FinalParticle(u'아', u'야'),
-    FinalParticle(u'이여', u'여'),
-    FinalParticle(u'이시여', u'시여'),
     # Invariant particles.
-    FinalParticle(u'의'),
-    FinalParticle(u'도'),
+    Particle(u'의', final=True),
+    Particle(u'도', final=True),
     Particle(u'만'),
     Particle(u'에'),
     Particle(u'께'),
     Particle(u'뿐'),
+    Particle(u'하'),
     Particle(u'보다'),
     Particle(u'밖에'),
     Particle(u'같이'),
@@ -49,7 +46,11 @@ PARTICLES = [
     Particle(u'조차'),
     Particle(u'마냥'),
     Particle(u'처럼'),
-    Particle(u'하고'),
+    Particle(u'커녕'),
+    # Vocative particles.
+    Particle(u'아', u'야', final=True),
+    Particle(u'이여', u'여', final=True),
+    Particle(u'이시여', u'시여', final=True),
 ]
 patterns = []
 _particles = {}
