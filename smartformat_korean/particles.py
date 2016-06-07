@@ -77,14 +77,52 @@ class Particle(with_metaclass(ParticleMeta)):
         self.final = final
 
     @cached_property
-    def tolerance(self):
-        """The representative tolerant form."""
-        return self.tolerances[0]
-
-    @cached_property
     def tolerances(self):
         """The tuple containing all the possible tolerant forms."""
         return tuple(generate_tolerances(self.form1, self.form2))
+
+    def tolerance(self, style=0):
+        """Gets a tolerant form."""
+        try:
+            return self.tolerances[style]
+        except IndexError:
+            return self.tolerances[0]
+
+    def rule(self, coda, tolerance_style=0):
+        """Determines one of allomorphic forms based on a coda."""
+        if coda is None:
+            return self.tolerance(tolerance_style)
+        elif coda:
+            return self.form1
+        else:
+            return self.form2
+
+    def allomorph(self, word, form, tolerance_style=0):
+        """Determines one of allomorphic forms based on a word.
+
+        .. see also:: :meth:`allomorph`.
+
+        """
+        suffix = self.match(form)
+        if suffix is None:
+            return None
+        coda = guess_coda(word)
+        return combine_words(self.rule(coda, tolerance_style), suffix)
+
+    def __getitem__(self, key):
+        """The syntax sugar to determine one of allomorphic forms based on a
+        word::
+
+           eun = Particle(u'은', u'는')
+           assert eun[u'나오'] == u'는'
+           assert eun[u'모리안'] == u'은'
+
+        """
+        if isinstance(key, slice):
+            word, form, tolerance_style = key.start, key.stop, key.step or 0
+        else:
+            word, form, tolerance_style = key, self.form1, 0
+        return self.allomorph(word, form, tolerance_style)
 
     @cached_property
     def regex(self):
@@ -100,27 +138,6 @@ class Particle(with_metaclass(ParticleMeta)):
         forms = chain([self.form1, self.form2], self.tolerances)
         unique_forms = (x for x in forms if x and not (x in seen or saw(x)))
         return tuple(sorted(unique_forms, key=len, reverse=True))
-
-    def rule(self, coda):
-        """Determines one of allomorphic forms based on a coda."""
-        if coda is None:
-            return self.tolerance
-        elif coda:
-            return self.form1
-        else:
-            return self.form2
-
-    def allomorph(self, word, form):
-        """Determines one of allomorphic forms based on a word.
-
-        .. see also:: :meth:`allomorph`.
-
-        """
-        suffix = self.match(form)
-        if suffix is None:
-            return None
-        coda = guess_coda(word)
-        return combine_words(self.rule(coda), suffix)
 
     def match(self, form):
         m = self.regex.match(form)
@@ -149,21 +166,6 @@ class Particle(with_metaclass(ParticleMeta)):
                 pattern = re.escape(form)
             patterns.append(pattern)
         return u'^(?:%s)' % u'|'.join(u'(%s)' % p for p in patterns)
-
-    def __getitem__(self, key):
-        """The syntax sugar to determine one of allomorphic forms based on a
-        word::
-
-           eun = Particle(u'은', u'는')
-           assert eun[u'나오'] == u'는'
-           assert eun[u'모리안'] == u'은'
-
-        """
-        if isinstance(key, slice):
-            word, form = key.start, key.stop
-        else:
-            word, form = key, self.form1
-        return self.allomorph(word, form)
 
     def __str__(self):
         return self.tolerance
@@ -211,9 +213,9 @@ class Euro(singleton_particle(Particle)):
     form2 = u'로'
     final = False
 
-    def rule(self, coda):
+    def rule(self, coda, tolerance_style=0):
         if coda is None:
-            return self.tolerance
+            return self.tolerance(tolerance_style)
         elif coda and coda != u'ㄹ':
             return self.form1
         else:
@@ -237,7 +239,7 @@ class Ida(singleton_particle(Particle)):
     #: The mapping for vowels which should be transformed by /j/ injection.
     J_INJECTIONS = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
 
-    def allomorph(self, word, form):
+    def allomorph(self, word, form, tolerance_style=0):
         coda = guess_coda(word)
         suffix = self.I_PATTERN.sub(u'', form)
         next_onset, next_nucleus, next_coda = split_phonemes(suffix[0])
@@ -258,4 +260,4 @@ class Ida(singleton_particle(Particle)):
                 next_nucleus = mapping[next_nucleus]
                 next_letter = join_phonemes(u'ㅇ', next_nucleus, next_coda)
                 suffix = next_letter + suffix[1:]
-        return self.rule(coda) + suffix
+        return self.rule(coda, tolerance_style) + suffix

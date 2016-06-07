@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 from smartformat import SmartFormatter
-from smartformat.ext.korean import ko
+from smartformat.ext.korean import ko, KoreanExtension
 from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
 from smartformat.ext.korean.particles import (
@@ -295,3 +295,14 @@ def test_igyuho2006(f):
     assert ff(u'이자') == (u'남이자', u'나자')
     assert ff(u'하고도') == (u'남하고도', u'나하고도')
     assert ff(u'이냐') == (u'남이냐', u'나냐')
+
+
+def test_tolerance_style():
+    smart = SmartFormatter('ko_KR', [KoreanExtension(u'는(은)')])
+    assert \
+        smart.format(u'{0:은} {1:을} {2:다}.', u'Hello', u'World', u'Bye') == \
+        u'Hello는(은) World를(을) Bye(이)다.'
+    smart = SmartFormatter('ko_KR', [KoreanExtension(u'(이)가')])
+    assert \
+        smart.format(u'{0:은} {1:을} {2:다}.', u'Hello', u'World', u'Bye') == \
+        u'Hello(은)는 World(을)를 Bye(이)다.'

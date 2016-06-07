@@ -11,13 +11,11 @@
 """
 import re
 
-from smartformat import extension
-
 from .hangul import is_hangul
 from .particles import Euro, Ida, Particle
 
 
-__all__ = ['ko']
+__all__ = ['ko', 'KoreanExtension']
 
 
 #: Known Korean particles.
@@ -64,8 +62,17 @@ for x, p in enumerate(PARTICLES):
 _particle_pattern = re.compile(u'|'.join(patterns))
 
 
-@extension(['ko', ''])
-def ko(formatter, value, name, option, format):
+def resolve_tolerance_style(style):
+    if isinstance(style, int):
+        return style
+    m = _particle_pattern.match(style)
+    particle = _particles[m.lastgroup]
+    if len(particle.tolerances) != 4:
+        raise ValueError('Set tolerance style by general allomorphic particle')
+    return particle.tolerances.index(style)
+
+
+class KoreanExtension(object):
     """Chooses different allomorphic forms for Korean particles.
 
     Implicit Spec: `{:[-]particle}`
@@ -73,29 +80,42 @@ def ko(formatter, value, name, option, format):
 
     Example::
 
-       >>> smart.format(u'{pokemon:은} {skill:을} 시전했다!',
-       ...              pokemon=u'피카츄', skill=u'전광석화')
-       피카츄는 전광석화를 시전했다!
+       >>> smart.format(u'{name:은} {alt:로} 불린다.',
+       ...              name=u'나오', alt=u'검은사신')
+       나오는 검은사신으로 불린다.
        >>> smart.format(u'{subj:는} {obj:다}.',
        ...              subj=u'대한민국', obj=u'민주공화국')
        대한민국은 민주공화국이다.
 
     """
-    if not name:
-        # Resolve implicit arguments.
-        if format.startswith(u'-'):
-            __, __, option = format.partition(u'-')
-            format = u''
+
+    names = ['ko', '']
+
+    def __init__(self, tolerance_style=0):
+        self.tolerance_style = resolve_tolerance_style(tolerance_style)
+
+    def __call__(self, formatter, value, name, option, format):
+        if not name:
+            # Resolve implicit arguments.
+            if format.startswith(u'-'):
+                __, __, option = format.partition(u'-')
+                format = u''
+            else:
+                option, format = format, u'{}'
+            if not option:
+                return
+            elif not all(is_hangul(l) or l in u'()' for l in option):
+                # All option letters have to be Hangul
+                # to use this extension implicitly.
+                return
+        m = _particle_pattern.match(option)
+        if m is None:
+            particle = Ida
         else:
-            option, format = format, u'{}'
-        if not option or not all(is_hangul(l) or l in u'()' for l in option):
-            # All option letters have to be Hangul
-            # to use this extension implicitly.
-            return
-    m = _particle_pattern.match(option)
-    if m is None:
-        particle = Ida
-    else:
-        particle = _particles[m.lastgroup]
-    suffix = particle[value:option]
-    return formatter.format(format, value) + suffix
+            particle = _particles[m.lastgroup]
+        suffix = particle[value:option:self.tolerance_style]
+        return formatter.format(format, value) + suffix
+
+
+#: The default Korean extension object with the most common tolerance style.
+ko = KoreanExtension()
