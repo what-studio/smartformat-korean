@@ -248,6 +248,11 @@ def test_combine():
     assert Euro[u'집':u'론123'] == u'으론123'
 
 
+def test_tolerances_for_coda_combination():
+    gwa = Particle(u'과', u'와')
+    assert gwa[u'Hello':u'완'] == u'관(완)'
+
+
 def test_igyuho2006(f):
     """Particles from <Classification and List of Conjunctive Particles>,
     I Gyu-ho, 2006.
