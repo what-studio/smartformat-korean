@@ -245,3 +245,43 @@ def test_combine():
     assert Euro[u'집':u'로'] == u'으로'
     assert Euro[u'집':u'론'] == u'으론'
     assert Euro[u'집':u'로는'] == u'으로는'
+
+
+def test_igyuho2006(f):
+    """Particles from <Classification and List of Conjunctive Particles>,
+    I Gyu-ho, 2006.
+    """
+    def ff(particle_string):
+        format_string = u'{:%s}' % particle_string
+        return f(format_string, u'남'), f(format_string, u'나')
+    # p181-182:
+    assert ff(u'의') == (u'남의', u'나의')
+    assert ff(u'과') == (u'남과', u'나와')
+    assert ff(u'와') == (u'남과', u'나와')
+    assert ff(u'하고') == (u'남하고', u'나하고')
+    assert ff(u'이랑') == (u'남이랑', u'나랑')
+    assert ff(u'이니') == (u'남이니', u'나니')
+    assert ff(u'이다') == (u'남이다', u'나다')
+    assert ff(u'이라든가') == (u'남이라든가', u'나라든가')
+    assert ff(u'이라든지') == (u'남이라든지', u'나라든지')
+    assert ff(u'이며') == (u'남이며', u'나며')
+    assert ff(u'이야') == (u'남이야', u'나야')
+    assert ff(u'이요') == (u'남이요', u'나요')
+    assert ff(u'이랴') == (u'남이랴', u'나랴')
+    assert ff(u'에') == (u'남에', u'나에')
+    assert ff(u'하며') == (u'남하며', u'나하며')
+    assert ff(u'커녕') == (u'남커녕', u'나커녕')
+    assert ff(u'은커녕') == (u'남은커녕', u'나는커녕')
+    assert ff(u'이고') == (u'남이고', u'나고')
+    assert ff(u'이나') == (u'남이나', u'나나')
+    assert ff(u'에다') == (u'남에다', u'나에다')
+    assert ff(u'에다가') == (u'남에다가', u'나에다가')
+    assert ff(u'이란') == (u'남이란', u'나란')
+    assert ff(u'이면') == (u'남이면', u'나면')
+    assert ff(u'이거나') == (u'남이거나', u'나거나')
+    assert ff(u'이건') == (u'남이건', u'나건')
+    assert ff(u'이든') == (u'남이든', u'나든')
+    assert ff(u'이든가') == (u'남이든가', u'나든가')
+    assert ff(u'이든지') == (u'남이든지', u'나든지')
+    assert ff(u'인가') == (u'남인가', u'나인가')
+    assert ff(u'인지') == (u'남인지', u'나인지')
