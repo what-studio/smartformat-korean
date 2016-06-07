@@ -22,14 +22,16 @@ __all__ = ['ko']
 
 #: Known Korean particles.
 PARTICLES = [
-    # Simple allomorphic rule.
+    # Simple allomorphic rule:
     Particle(u'이', u'가', final=True),
     Particle(u'을', u'를', final=True),
-    Particle(u'은', u'는'),
+    Particle(u'은', u'는'),  # "은(는)" includes "은(는)커녕".
     Particle(u'과', u'와'),
-    # Special rule after 'ㄹ'.
-    Euro,
-    # Invariant particles.
+    # Vocative particles:
+    Particle(u'아', u'야', final=True),
+    Particle(u'이여', u'여', final=True),
+    Particle(u'이시여', u'시여', final=True),
+    # Invariant particles:
     Particle(u'의', final=True),
     Particle(u'도', final=True),
     Particle(u'만'),
@@ -47,11 +49,12 @@ PARTICLES = [
     Particle(u'마냥'),
     Particle(u'처럼'),
     Particle(u'커녕'),
-    # Vocative particles.
-    Particle(u'아', u'야', final=True),
-    Particle(u'이여', u'여', final=True),
-    Particle(u'이시여', u'시여', final=True),
+    # Special particles:
+    Euro,
 ]
+
+
+# Index the particles.
 patterns = []
 _particles = {}
 for x, p in enumerate(PARTICLES):
@@ -79,6 +82,7 @@ def ko(formatter, value, name, option, format):
 
     """
     if not name:
+        # Resolve implicit arguments.
         if format.startswith(u'-'):
             __, __, option = format.partition(u'-')
             format = u''
