@@ -17,6 +17,7 @@ from six import PY2, python_2_unicode_compatible, with_metaclass
 
 from .coda import guess_coda, pick_coda_from_letter
 from .hangul import combine_words, join_phonemes, split_phonemes
+from .tolerance import generate_tolerances
 from .utils import cached_property
 
 
@@ -50,7 +51,6 @@ class Particle(with_metaclass(ParticleMeta)):
     @cached_property
     def tolerances(self):
         """The tuple containing all the possible tolerant forms."""
-        from .tolerance import generate_tolerances
         return tuple(generate_tolerances(self.form1, self.form2))
 
     def tolerance(self, style=0):
