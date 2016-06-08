@@ -9,6 +9,10 @@ from smartformat.ext.korean.tolerance import (
     generate_tolerances, OPTIONAL_FORM2_AND_FORM1)
 
 
+Eun = Particle(u'은', u'는', final=True)
+Gwa = Particle(u'과', u'와')
+
+
 @pytest.fixture
 def f():
     smart = SmartFormatter('ko_KR', [ko])
@@ -230,19 +234,17 @@ def test_decimal(f):
 
 def test_match():
     # (n)eun
-    eun = Particle(u'은', u'는', final=True)
-    assert eun.match(u'은') == u''
-    assert eun.match(u'는') == u''
-    assert eun.match(u'은(는)') == u''
-    assert eun.match(u'는(은)') == u''
-    assert eun.match(u'(은)는') == u''
-    assert eun.match(u'(는)은') == u''
-    assert eun.match(u'는는') is None
+    assert Eun.match(u'은') == u''
+    assert Eun.match(u'는') == u''
+    assert Eun.match(u'은(는)') == u''
+    assert Eun.match(u'는(은)') == u''
+    assert Eun.match(u'(은)는') == u''
+    assert Eun.match(u'(는)은') == u''
+    assert Eun.match(u'는는') is None
     # (g)wa
-    gwa = Particle(u'과', u'와')
-    assert gwa.match(u'과') == u''
-    assert gwa.match(u'과는') == u'는'
-    assert gwa.match(u'관') == u'ㄴ'
+    assert Gwa.match(u'과') == u''
+    assert Gwa.match(u'과는') == u'는'
+    assert Gwa.match(u'관') == u'ㄴ'
     # (eu)ro
     assert Euro.match(u'으로도') == u'도'
     assert Euro.match(u'론') == u'ㄴ'
@@ -257,10 +259,9 @@ def test_combine():
 
 def test_tolerances_for_coda_combination():
     assert Euro[u'Hello':u'론'] == u'(으)론'
-    gwa = Particle(u'과', u'와')
-    assert gwa[u'Hello':u'완'] == u'관(완)'
-    assert gwa[u'Hello':u'완':OPTIONAL_FORM2_AND_FORM1] == u'(완)관'
-    assert gwa[u'Hello':u'완완완'] == u'관(완)완완'
+    assert Gwa[u'Hello':u'완'] == u'관(완)'
+    assert Gwa[u'Hello':u'완':OPTIONAL_FORM2_AND_FORM1] == u'(완)관'
+    assert Gwa[u'Hello':u'완완완'] == u'관(완)완완'
 
 
 def test_igyuho2006(f):
