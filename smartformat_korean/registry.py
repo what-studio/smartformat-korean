@@ -29,11 +29,11 @@ def index_particles(particles):
 
 class Registry(object):
 
-    __slots__ = ('particles', 'default', 'pattern', 'indices')
+    __slots__ = ('default', 'particles', 'pattern', 'indices')
 
-    def __init__(self, particles, default):
-        self.particles = particles
+    def __init__(self, default, particles):
         self.default = default
+        self.particles = particles
         self.pattern, self.indices = index_particles(particles)
 
     def _get_by_match(self, match):
@@ -51,7 +51,7 @@ class Registry(object):
 
 
 #: The default registry for well-known Korean particles.
-registry = Registry([
+registry = Registry(Ida, [
     # Simple allomorphic rule:
     Particle(u'이', u'가', final=True),
     Particle(u'을', u'를', final=True),
@@ -81,4 +81,4 @@ registry = Registry([
     Particle(u'커녕'),
     # Special particles:
     Euro,
-], default=Ida)
+])
