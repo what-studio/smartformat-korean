@@ -11,18 +11,10 @@
 """
 from .hangul import is_hangul
 from .registry import registry
+from .tolerance import tolerance_style as _tolerance_style
 
 
 __all__ = ['ko', 'KoreanExtension']
-
-
-def resolve_tolerance_style(style, registry=registry):
-    if isinstance(style, int):
-        return style
-    particle = registry.get(style)
-    if len(particle.tolerances) != 4:
-        raise ValueError('Set tolerance style by general allomorphic particle')
-    return particle.tolerances.index(style)
 
 
 class KoreanExtension(object):
@@ -45,8 +37,7 @@ class KoreanExtension(object):
     names = ['ko', '']
 
     def __init__(self, tolerance_style=0, registry=registry):
-        self.tolerance_style = \
-            resolve_tolerance_style(tolerance_style, registry)
+        self.tolerance_style = _tolerance_style(tolerance_style, registry)
         self.registry = registry
 
     def __call__(self, formatter, value, name, option, format):

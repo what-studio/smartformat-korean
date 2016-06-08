@@ -20,36 +20,7 @@ from .hangul import combine_words, join_phonemes, split_phonemes
 from .utils import cached_property
 
 
-__all__ = ['generate_tolerances', 'Euro', 'Ida', 'Particle']
-
-
-def generate_tolerances(form1, form2):
-    """Generates all reasonable tolerant particle forms::
-
-    >>> set(generate_tolerances(u'이', u'가'))
-    set([u'이(가)', u'(이)가', u'가(이)', u'(가)이'])
-    >>> set(generate_tolerances(u'이면', u'면'))
-    set([u'(이)면'])
-
-    """
-    if form1 == form2:
-        # Tolerance not required.
-        return
-    if not (form1 and form2):
-        # Null allomorph exists.
-        yield u'(%s)' % (form1 or form2)
-        return
-    len1, len2 = len(form1), len(form2)
-    if len1 != len2:
-        longer, shorter = (form1, form2) if len1 > len2 else (form2, form1)
-        if longer.endswith(shorter):
-            # Longer form ends with shorter form.
-            yield u'(%s)%s' % (longer[:-len(shorter)], shorter)
-            return
-    # No similarity between two forms.
-    for form1, form2 in [(form1, form2), (form2, form1)]:
-        yield u'%s(%s)' % (form1, form2)
-        yield u'(%s)%s' % (form1, form2)
+__all__ = ['Euro', 'Ida', 'Particle']
 
 
 class ParticleMeta(type):
@@ -79,6 +50,7 @@ class Particle(with_metaclass(ParticleMeta)):
     @cached_property
     def tolerances(self):
         """The tuple containing all the possible tolerant forms."""
+        from .tolerance import generate_tolerances
         return tuple(generate_tolerances(self.form1, self.form2))
 
     def tolerance(self, style=0):
