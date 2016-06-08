@@ -45,10 +45,21 @@ def generate_tolerances(form1, form2):
             # Longer form ends with shorter form.
             yield u'(%s)%s' % (longer[:-len(shorter)], shorter)
             return
-    # No similarity between two forms.
+    # Find common suffix between two forms.
+    for x, (let1, let2) in enumerate(zip(reversed(form1), reversed(form2))):
+        if let1 != let2:
+            break
+    if x:
+        # They share the common suffix.
+        x1, x2 = len(form1) - x, len(form2) - x
+        common_suffix = form1[x1:]
+        form1, form2 = form1[:x1], form2[:x2]
+    else:
+        # No similarity with each other.
+        common_suffix = ''
     for form1, form2 in [(form1, form2), (form2, form1)]:
-        yield u'%s(%s)' % (form1, form2)
-        yield u'(%s)%s' % (form1, form2)
+        yield u'%s(%s)%s' % (form1, form2, common_suffix)
+        yield u'(%s)%s%s' % (form1, form2, common_suffix)
 
 
 def parse_tolerance_style(style, registry=None):

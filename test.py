@@ -45,6 +45,12 @@ def test_particle_tolerances():
     assert t(u'이여', u'여') == s(u'(이)여')
     assert t(u'이시여', u'시여') == s(u'(이)시여')
     assert t(u'아', u'야') == s(u'아(야) (아)야 야(아) (야)아')
+    assert \
+        t(u'가나다', u'나나다') == \
+        s(u'가(나)나다 (가)나나다 나(가)나다 (나)가나다')
+    assert \
+        t(u'가나다', u'마바사') == \
+        s(u'가나다(마바사) (가나다)마바사 마바사(가나다) (마바사)가나다')
 
 
 def test_explicit(f):
