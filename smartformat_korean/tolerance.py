@@ -12,7 +12,7 @@
 from six import integer_types
 
 
-__all__ = ['generate_tolerances', 'tolerance_style']
+__all__ = ['generate_tolerances', 'parse_tolerance_style']
 
 
 # Tolerance styles:
@@ -51,14 +51,14 @@ def generate_tolerances(form1, form2):
         yield u'(%s)%s' % (form1, form2)
 
 
-def tolerance_style(style, registry):
+def parse_tolerance_style(style, registry):
     """Resolves a tolerance style of the given tolerant particle form::
 
-    >>> tolerance_style(u'은(는)', registry)
+    >>> parse_tolerance_style(u'은(는)', registry)
     0
-    >>> tolerance_style(u'(은)는', registry)
+    >>> parse_tolerance_style(u'(은)는', registry)
     1
-    >>> tolerance_style(OPTIONAL_FORM2_AND_FORM1, registry)
+    >>> parse_tolerance_style(OPTIONAL_FORM2_AND_FORM1, registry)
     3
 
     """

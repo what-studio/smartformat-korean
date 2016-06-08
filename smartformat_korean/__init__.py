@@ -11,7 +11,7 @@
 """
 from .hangul import is_hangul
 from .registry import registry
-from .tolerance import tolerance_style as _tolerance_style
+from .tolerance import parse_tolerance_style
 
 
 __all__ = ['ko', 'KoreanExtension']
@@ -37,7 +37,7 @@ class KoreanExtension(object):
     names = ['ko', '']
 
     def __init__(self, tolerance_style=0, registry=registry):
-        self.tolerance_style = _tolerance_style(tolerance_style, registry)
+        self.tolerance_style = parse_tolerance_style(tolerance_style, registry)
         self.registry = registry
 
     def __call__(self, formatter, value, name, option, format):
