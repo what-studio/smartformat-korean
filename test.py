@@ -4,13 +4,15 @@ from smartformat import SmartFormatter
 from smartformat.ext.korean import ko, KoreanExtension
 from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
-from smartformat.ext.korean.particles import Euro, Particle
+from smartformat.ext.korean.particles import Euro
+from smartformat.ext.korean.registry import registry
 from smartformat.ext.korean.tolerance import (
     generate_tolerances, OPTIONAL_FORM2_AND_FORM1)
 
 
-Eun = Particle(u'은', u'는', final=True)
-Gwa = Particle(u'과', u'와')
+Eun = registry.get(u'은')
+Eul = registry.get(u'을')
+Gwa = registry.get(u'과')
 
 
 @pytest.fixture
@@ -240,7 +242,10 @@ def test_match():
     assert Eun.match(u'는(은)') == u''
     assert Eun.match(u'(은)는') == u''
     assert Eun.match(u'(는)은') == u''
-    assert Eun.match(u'는는') is None
+    assert Eun.match(u'는는') == u'는'
+    # (r)eul (final=True)
+    assert Eul.match(u'를') == u''
+    assert Eul.match(u'을을') is None
     # (g)wa
     assert Gwa.match(u'과') == u''
     assert Gwa.match(u'과는') == u'는'
