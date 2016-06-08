@@ -240,8 +240,8 @@ class Ida(singleton_particle(Particle)):
     J_INJECTIONS = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
 
     def allomorph(self, word, form, tolerance_style=0):
-        coda = guess_coda(word)
         suffix = self.I_PATTERN.sub(u'', form)
+        coda = guess_coda(word)
         next_onset, next_nucleus, next_coda = split_phonemes(suffix[0])
         if next_onset == u'ㅇ':
             if next_nucleus == u'ㅣ':

@@ -248,9 +248,10 @@ def test_combine():
     assert Euro[u'집':u'론123'] == u'으론123'
 
 
-def test_tolerances_for_coda_combination():
+def _test_tolerances_for_coda_combination():
     gwa = Particle(u'과', u'와')
     assert gwa[u'Hello':u'완'] == u'관(완)'
+    assert Euro[u'Hello':u'론'] == u'(으)론'
 
 
 def test_igyuho2006(f):
