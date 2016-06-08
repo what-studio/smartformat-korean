@@ -148,10 +148,19 @@ class Particle(with_metaclass(ParticleMeta)):
         return u'^(?:%s)' % u'|'.join(u'(%s)' % p for p in patterns)
 
     def __str__(self):
-        return self.tolerance
+        return self.tolerance()
 
-    def __repr__(self):
-        return '<Particle: ' + (repr if PY2 else str)(self.tolerance) + '>'
+    if PY2:
+        def __repr__(self):
+            try:
+                from unidecode import unidecode
+            except ImportError:
+                return '<Particle: %r>' % self.tolerance()
+            else:
+                return '<Particle: %s>' % unidecode(self.tolerance())
+    else:
+        def __repr__(self):
+            return '<Particle: %s>' % self.tolerance()
 
 
 class SingletonParticleMeta(ParticleMeta):
