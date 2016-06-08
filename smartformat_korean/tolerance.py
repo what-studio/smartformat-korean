@@ -16,10 +16,10 @@ __all__ = ['generate_tolerances', 'parse_tolerance_style']
 
 
 # Tolerance styles:
-FORM1_AND_OPTIONAL_FORM2 = 0
-OPTIONAL_FORM1_AND_FORM2 = 1
-FORM2_AND_OPTIONAL_FORM1 = 2
-OPTIONAL_FORM2_AND_FORM1 = 3
+FORM1_AND_OPTIONAL_FORM2 = 0  # 은(는)
+OPTIONAL_FORM1_AND_FORM2 = 1  # (은)는
+FORM2_AND_OPTIONAL_FORM1 = 2  # 는(은)
+OPTIONAL_FORM2_AND_FORM1 = 3  # (는)은
 
 
 def generate_tolerances(form1, form2):
@@ -51,20 +51,36 @@ def generate_tolerances(form1, form2):
         yield u'(%s)%s' % (form1, form2)
 
 
-def parse_tolerance_style(style, registry):
+def parse_tolerance_style(style, registry=None):
     """Resolves a tolerance style of the given tolerant particle form::
 
-    >>> parse_tolerance_style(u'은(는)', registry)
+    >>> parse_tolerance_style(u'은(는)')
     0
-    >>> parse_tolerance_style(u'(은)는', registry)
+    >>> parse_tolerance_style(u'(은)는')
     1
-    >>> parse_tolerance_style(OPTIONAL_FORM2_AND_FORM1, registry)
+    >>> parse_tolerance_style(OPTIONAL_FORM2_AND_FORM1)
     3
 
     """
     if isinstance(style, integer_types):
         return style
+    if registry is None:
+        from .registry import registry
     particle = registry.get(style)
     if len(particle.tolerances) != 4:
         raise ValueError('Set tolerance style by general allomorphic particle')
     return particle.tolerances.index(style)
+
+
+def get_tolerance(tolerances, style):
+    try:
+        return tolerances[style]
+    except IndexError:
+        return tolerances[0]
+
+
+def get_tolerance_from_iterator(tolerances, style):
+    for x, form in enumerate(tolerances):
+        if style == x:
+            return form
+    return form

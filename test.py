@@ -5,7 +5,8 @@ from smartformat.ext.korean import ko, KoreanExtension
 from smartformat.ext.korean.coda import pick_coda_from_decimal
 from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
 from smartformat.ext.korean.particles import Euro, Particle
-from smartformat.ext.korean.tolerance import generate_tolerances
+from smartformat.ext.korean.tolerance import (
+    generate_tolerances, OPTIONAL_FORM2_AND_FORM1)
 
 
 @pytest.fixture
@@ -248,10 +249,12 @@ def test_combine():
     assert Euro[u'집':u'론123'] == u'으론123'
 
 
-def _test_tolerances_for_coda_combination():
-    gwa = Particle(u'과', u'와')
+def test_tolerances_for_coda_combination():
     assert Euro[u'Hello':u'론'] == u'(으)론'
+    gwa = Particle(u'과', u'와')
     assert gwa[u'Hello':u'완'] == u'관(완)'
+    assert gwa[u'Hello':u'완':OPTIONAL_FORM2_AND_FORM1] == u'(완)관'
+    assert gwa[u'Hello':u'완완완'] == u'관(완)완완'
 
 
 def test_igyuho2006(f):

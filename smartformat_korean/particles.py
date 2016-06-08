@@ -16,8 +16,10 @@ from bidict import bidict
 from six import PY2, python_2_unicode_compatible, with_metaclass
 
 from .coda import guess_coda, pick_coda_from_letter
-from .hangul import combine_words, join_phonemes, split_phonemes
-from .tolerance import generate_tolerances
+from .hangul import combine_words, is_consonant, join_phonemes, split_phonemes
+from .tolerance import (
+    FORM1_AND_OPTIONAL_FORM2, generate_tolerances, get_tolerance,
+    get_tolerance_from_iterator)
 from .utils import cached_property
 
 
@@ -53,23 +55,18 @@ class Particle(with_metaclass(ParticleMeta)):
         """The tuple containing all the possible tolerant forms."""
         return tuple(generate_tolerances(self.form1, self.form2))
 
-    def tolerance(self, style=0):
+    def tolerance(self, style=FORM1_AND_OPTIONAL_FORM2):
         """Gets a tolerant form."""
-        try:
-            return self.tolerances[style]
-        except IndexError:
-            return self.tolerances[0]
+        return get_tolerance(self.tolerances, style)
 
-    def rule(self, coda, tolerance_style=0):
+    def rule(self, coda):
         """Determines one of allomorphic forms based on a coda."""
-        if coda is None:
-            return self.tolerance(tolerance_style)
-        elif coda:
+        if coda:
             return self.form1
         else:
             return self.form2
 
-    def allomorph(self, word, form, tolerance_style=0):
+    def allomorph(self, word, form, tolerance_style=FORM1_AND_OPTIONAL_FORM2):
         """Determines one of allomorphic forms based on a word.
 
         .. see also:: :meth:`allomorph`.
@@ -79,7 +76,16 @@ class Particle(with_metaclass(ParticleMeta)):
         if suffix is None:
             return None
         coda = guess_coda(word)
-        return combine_words(self.rule(coda, tolerance_style), suffix)
+        if coda is None:
+            if suffix and is_consonant(suffix[0]):
+                form1 = combine_words(self.form1, suffix)
+                form2 = combine_words(self.form2, suffix)
+                tolerances = generate_tolerances(form1, form2)
+                return get_tolerance_from_iterator(tolerances, tolerance_style)
+            form = self.tolerance(tolerance_style)
+        else:
+            form = self.rule(coda)
+        return combine_words(form, suffix)
 
     def __getitem__(self, key):
         """The syntax sugar to determine one of allomorphic forms based on a
@@ -91,9 +97,11 @@ class Particle(with_metaclass(ParticleMeta)):
 
         """
         if isinstance(key, slice):
-            word, form, tolerance_style = key.start, key.stop, key.step or 0
+            word, form = key.start, key.stop
+            tolerance_style = key.step or FORM1_AND_OPTIONAL_FORM2
         else:
-            word, form, tolerance_style = key, self.form1, 0
+            word, form = key, self.form1
+            tolerance_style = FORM1_AND_OPTIONAL_FORM2
         return self.allomorph(word, form, tolerance_style)
 
     @cached_property
@@ -185,10 +193,8 @@ class Euro(singleton_particle(Particle)):
     form2 = u'로'
     final = False
 
-    def rule(self, coda, tolerance_style=0):
-        if coda is None:
-            return self.tolerance(tolerance_style)
-        elif coda and coda != u'ㄹ':
+    def rule(self, coda):
+        if coda and coda != u'ㄹ':
             return self.form1
         else:
             return self.form2
@@ -211,7 +217,7 @@ class Ida(singleton_particle(Particle)):
     #: The mapping for vowels which should be transformed by /j/ injection.
     J_INJECTIONS = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
 
-    def allomorph(self, word, form, tolerance_style=0):
+    def allomorph(self, word, form, tolerance_style=FORM1_AND_OPTIONAL_FORM2):
         suffix = self.I_PATTERN.sub(u'', form)
         coda = guess_coda(word)
         next_onset, next_nucleus, next_coda = split_phonemes(suffix[0])
@@ -232,4 +238,8 @@ class Ida(singleton_particle(Particle)):
                 next_nucleus = mapping[next_nucleus]
                 next_letter = join_phonemes(u'ㅇ', next_nucleus, next_coda)
                 suffix = next_letter + suffix[1:]
-        return self.rule(coda, tolerance_style) + suffix
+        if coda is None:
+            form = self.tolerance(tolerance_style)
+        else:
+            form = self.rule(coda)
+        return form + suffix

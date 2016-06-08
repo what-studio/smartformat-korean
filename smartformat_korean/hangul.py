@@ -12,7 +12,8 @@
 from six import unichr
 
 
-__all__ = ['is_hangul', 'join_phonemes', 'split_phonemes']
+__all__ = ['combine_words', 'is_consonant', 'is_hangul', 'join_phonemes',
+           'split_phonemes']
 
 
 # Korean phonemes as known as 자소 including
@@ -33,6 +34,10 @@ FIRST_HANGUL_OFFSET = ord(u'가')
 
 def is_hangul(letter):
     return u'가' <= letter <= u'힣'
+
+
+def is_consonant(letter):
+    return u'ㄱ' <= letter <= u'ㅎ'
 
 
 def join_phonemes(*args):
@@ -85,7 +90,7 @@ def combine_words(word1, word2):
     가온누리
 
     """
-    if word1 and word2 and u'ㄱ' <= word2[0] <= u'ㅎ':
+    if word1 and word2 and is_consonant(word2[0]):
         onset, nucleus, coda = split_phonemes(word1[-1])
         if not coda:
             glue = join_phonemes(onset, nucleus, word2[0])
