@@ -76,15 +76,21 @@ class Particle(with_metaclass(ParticleMeta)):
         if suffix is None:
             return None
         coda = guess_coda(word)
-        if coda is None:
-            if suffix and is_consonant(suffix[0]):
-                form1 = combine_words(self.form1, suffix)
-                form2 = combine_words(self.form2, suffix)
-                tolerances = generate_tolerances(form1, form2)
-                return get_tolerance_from_iterator(tolerances, tolerance_style)
+        if coda is not None:
+            # Coda guessed successfully.
+            form = self.rule(coda)
+        elif not suffix or not is_consonant(suffix[0]):
+            # Choose the tolerant form.
             form = self.tolerance(tolerance_style)
         else:
-            form = self.rule(coda)
+            # Suffix starts with a consonant.  Generate a new tolerant form
+            # by combined forms.
+            form1 = (combine_words(self.form1, suffix)
+                     if self.form1 else suffix[1:])
+            form2 = (combine_words(self.form2, suffix)
+                     if self.form2 else suffix[1:])
+            tolerances = generate_tolerances(form1, form2)
+            return get_tolerance_from_iterator(tolerances, tolerance_style)
         return combine_words(form, suffix)
 
     def __getitem__(self, key):
