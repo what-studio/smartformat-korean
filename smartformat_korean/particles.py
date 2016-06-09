@@ -26,6 +26,10 @@ from .utils import cached_property
 __all__ = ['Euro', 'Ida', 'Particle']
 
 
+#: The default tolerance style.
+TOLERANCE_STYLE = FORM1_AND_OPTIONAL_FORM2
+
+
 class ParticleMeta(type):
 
     def __new__(meta, name, bases, attrs):
@@ -55,7 +59,7 @@ class Particle(with_metaclass(ParticleMeta)):
         """The tuple containing all the possible tolerant forms."""
         return tuple(generate_tolerances(self.form1, self.form2))
 
-    def tolerance(self, style=FORM1_AND_OPTIONAL_FORM2):
+    def tolerance(self, style=TOLERANCE_STYLE):
         """Gets a tolerant form."""
         return get_tolerance(self.tolerances, style)
 
@@ -66,7 +70,8 @@ class Particle(with_metaclass(ParticleMeta)):
         else:
             return self.form2
 
-    def allomorph(self, word, form, tolerance_style=FORM1_AND_OPTIONAL_FORM2):
+    def allomorph(self, word, form,
+                  tolerance_style=TOLERANCE_STYLE, guess_coda=guess_coda):
         """Determines one of allomorphic forms based on a word.
 
         .. see also:: :meth:`allomorph`.
@@ -104,10 +109,10 @@ class Particle(with_metaclass(ParticleMeta)):
         """
         if isinstance(key, slice):
             word, form = key.start, key.stop
-            tolerance_style = key.step or FORM1_AND_OPTIONAL_FORM2
+            tolerance_style = key.step or TOLERANCE_STYLE
         else:
             word, form = key, self.form1
-            tolerance_style = FORM1_AND_OPTIONAL_FORM2
+            tolerance_style = TOLERANCE_STYLE
         return self.allomorph(word, form, tolerance_style)
 
     @cached_property
@@ -232,7 +237,8 @@ class Ida(singleton_particle(Particle)):
     #: The mapping for vowels which should be transformed by /j/ injection.
     J_INJECTIONS = bidict({u'ㅓ': u'ㅕ', u'ㅔ': u'ㅖ'})
 
-    def allomorph(self, word, form, tolerance_style=FORM1_AND_OPTIONAL_FORM2):
+    def allomorph(self, word, form,
+                  tolerance_style=TOLERANCE_STYLE, guess_coda=guess_coda):
         suffix = self.I_PATTERN.sub(u'', form)
         coda = guess_coda(word)
         next_onset, next_nucleus, next_coda = split_phonemes(suffix[0])
