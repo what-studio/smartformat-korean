@@ -9,7 +9,9 @@
    :license: BSD, see LICENSE for more details.
 
 """
+from .coda import guess_coda
 from .hangul import is_hangul
+from .particles import TOLERANCE_STYLE
 from .registry import registry
 from .tolerance import parse_tolerance_style
 
@@ -36,8 +38,10 @@ class KoreanExtension(object):
 
     names = ['ko', '']
 
-    def __init__(self, tolerance_style=0, registry=registry):
+    def __init__(self, tolerance_style=TOLERANCE_STYLE, guess_coda=guess_coda,
+                 registry=registry):
         self.tolerance_style = parse_tolerance_style(tolerance_style, registry)
+        self.guess_coda = guess_coda
         self.registry = registry
 
     def __call__(self, formatter, value, name, option, format):
@@ -56,7 +60,9 @@ class KoreanExtension(object):
                 return
         word, form = value, option
         particle = self.registry.find(form)
-        suffix = particle[word:form:self.tolerance_style]
+        suffix = particle.allomorph(word, form,
+                                    tolerance_style=self.tolerance_style,
+                                    guess_coda=self.guess_coda)
         return formatter.format(format, value) + suffix
 
 

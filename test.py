@@ -329,3 +329,13 @@ def test_tolerance_style():
     assert \
         smart.format(u'{0:은} {1:을} {2:다}.', u'Hello', u'World', u'Bye') == \
         u'Hello(은)는 World(을)를 Bye(이)다.'
+
+
+def test_custom_guess_coda():
+    def dont_guess_coda(word):
+        return None
+    assert Euro.allomorph(u'밖', u'으로',
+                          guess_coda=dont_guess_coda) == u'(으)로'
+    ko = KoreanExtension(guess_coda=dont_guess_coda)
+    smart = SmartFormatter('ko_KR', [ko])
+    assert smart.format(u'{0:으로}', u'밖') == u'밖(으)로'
