@@ -1,62 +1,18 @@
 # -*- coding: utf-8 -*-
 import pytest
+import tossi
+
 from smartformat import SmartFormatter
 from smartformat.ext.korean import ko, KoreanExtension
-from smartformat.ext.korean.coda import pick_coda_from_decimal
-from smartformat.ext.korean.hangul import join_phonemes, split_phonemes
-from smartformat.ext.korean.particles import Euro, Particle
-from smartformat.ext.korean.registry import registry
-from smartformat.ext.korean.tolerance import (
-    generate_tolerances, OPTIONAL_FORM2_AND_FORM1)
 
 
-Eun = registry.get(u'은')
-Eul = registry.get(u'을')
-Gwa = registry.get(u'과')
+Euro = tossi.get_particle(u'으로')
 
 
 @pytest.fixture
 def f():
     smart = SmartFormatter('ko_KR', [ko])
     return smart.format
-
-
-def test_split_phonemes():
-    assert split_phonemes(u'쏚') == (u'ㅆ', u'ㅗ', u'ㄲ')
-    assert split_phonemes(u'섭') == (u'ㅅ', u'ㅓ', u'ㅂ')
-    assert split_phonemes(u'투') == (u'ㅌ', u'ㅜ', u'')
-    assert split_phonemes(u'투', onset=False) == (None, u'ㅜ', u'')
-    with pytest.raises(ValueError):
-        split_phonemes(u'X')
-    with pytest.raises(ValueError):
-        split_phonemes(u'섭섭')
-
-
-def test_join_phonemes():
-    assert join_phonemes(u'ㅅ', u'ㅓ', u'ㅂ') == u'섭'
-    assert join_phonemes((u'ㅅ', u'ㅓ', u'ㅂ')) == u'섭'
-    assert join_phonemes(u'ㅊ', u'ㅠ') == u'츄'
-    assert join_phonemes(u'ㅊ', u'ㅠ', u'') == u'츄'
-    assert join_phonemes((u'ㅊ', u'ㅠ')) == u'츄'
-    with pytest.raises(TypeError):
-        join_phonemes(u'ㄷ', u'ㅏ', u'ㄹ', u'ㄱ')
-
-
-def test_particle_tolerances():
-    t = lambda _1, _2: set(generate_tolerances(_1, _2))
-    s = lambda x: set(x.split())
-    assert t(u'이', u'가') == s(u'이(가) (이)가 가(이) (가)이')
-    assert t(u'이', u'') == s(u'(이)')
-    assert t(u'으로', u'로') == s(u'(으)로')
-    assert t(u'이여', u'여') == s(u'(이)여')
-    assert t(u'이시여', u'시여') == s(u'(이)시여')
-    assert t(u'아', u'야') == s(u'아(야) (아)야 야(아) (야)아')
-    assert \
-        t(u'가나다', u'나나다') == \
-        s(u'가(나)나다 (가)나나다 나(가)나다 (나)가나다')
-    assert \
-        t(u'가나다', u'마바사') == \
-        s(u'가나다(마바사) (가나다)마바사 마바사(가나다) (마바사)가나다')
 
 
 def test_explicit(f):
@@ -216,58 +172,6 @@ def test_decimal(f):
     assert f(u'{:으로}', u'레벨7') == u'레벨7로'
     assert f(u'{:으로}', u'레벨42') == u'레벨42로'
     assert f(u'{:으로}', u'레벨100') == u'레벨100으로'
-    assert pick_coda_from_decimal('1') == u'ㄹ'
-    assert pick_coda_from_decimal('2') == u''
-    assert pick_coda_from_decimal('3') == u'ㅁ'
-    assert pick_coda_from_decimal('10') == u'ㅂ'
-    assert pick_coda_from_decimal('16') == u'ㄱ'
-    assert pick_coda_from_decimal('19') == u''
-    assert pick_coda_from_decimal('200') == u'ㄱ'
-    assert pick_coda_from_decimal('30000') == u'ㄴ'
-    assert pick_coda_from_decimal('400000') == u'ㄴ'
-    assert pick_coda_from_decimal('500000000') == u'ㄱ'
-    assert pick_coda_from_decimal('1' + '0' * 50) == u'ㄱ'
-    assert pick_coda_from_decimal('1' + '0' * 100) is None
-    assert pick_coda_from_decimal('0') == u'ㅇ'
-    assert pick_coda_from_decimal('1.0') == u'ㅇ'
-    assert pick_coda_from_decimal('1.234567890') == u'ㅇ'
-    assert pick_coda_from_decimal('3.14') == u''
-
-
-def test_match():
-    # (n)eun
-    assert Eun.match(u'은') == u''
-    assert Eun.match(u'는') == u''
-    assert Eun.match(u'은(는)') == u''
-    assert Eun.match(u'는(은)') == u''
-    assert Eun.match(u'(은)는') == u''
-    assert Eun.match(u'(는)은') == u''
-    assert Eun.match(u'는는') == u'는'
-    # (r)eul (final=True)
-    assert Eul.match(u'를') == u''
-    assert Eul.match(u'을을') is None
-    # (g)wa
-    assert Gwa.match(u'과') == u''
-    assert Gwa.match(u'과는') == u'는'
-    assert Gwa.match(u'관') == u'ㄴ'
-    # (eu)ro
-    assert Euro.match(u'으로도') == u'도'
-    assert Euro.match(u'론') == u'ㄴ'
-
-
-def test_combine():
-    assert Euro[u'집':u'로'] == u'으로'
-    assert Euro[u'집':u'론'] == u'으론'
-    assert Euro[u'집':u'로는'] == u'으로는'
-    assert Euro[u'집':u'론123'] == u'으론123'
-
-
-def test_tolerances_for_coda_combination():
-    assert Euro[u'Hello':u'론'] == u'(으)론'
-    assert Gwa[u'Hello':u'완'] == u'관(완)'
-    assert Gwa[u'Hello':u'완':OPTIONAL_FORM2_AND_FORM1] == u'(완)관'
-    assert Gwa[u'Hello':u'완완완'] == u'관(완)완완'
-    assert Particle(u'크', u'')[u'Hello':u'큰큰'] == u'(큰)큰'
 
 
 def test_igyuho2006(f):

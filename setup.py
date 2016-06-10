@@ -39,5 +39,5 @@ setup(
         'Topic :: Software Development :: Localization',
         'Topic :: Text Processing :: Linguistic',
     ],
-    install_requires=['bidict', 'smartformat'],
+    install_requires=['smartformat', 'tossi'],
 )

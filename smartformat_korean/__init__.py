@@ -9,11 +9,10 @@
    :license: BSD, see LICENSE for more details.
 
 """
-from .coda import guess_coda
-from .hangul import is_hangul
-from .particles import TOLERANCE_STYLE
-from .registry import registry
-from .tolerance import parse_tolerance_style
+from tossi import parse_tolerance_style, registry
+from tossi.coda import guess_coda
+from tossi.hangul import is_hangul
+from tossi.particles import TOLERANCE_STYLE
 
 
 __all__ = ['ko', 'KoreanExtension']
@@ -59,7 +58,7 @@ class KoreanExtension(object):
                 # to use this extension implicitly.
                 return
         word, form = value, option
-        particle = self.registry.find(form)
+        particle = self.registry.get(form)
         suffix = particle.allomorph(word, form,
                                     tolerance_style=self.tolerance_style,
                                     guess_coda=self.guess_coda)
