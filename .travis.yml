@@ -9,7 +9,6 @@ python:
 - pypy
 - pypy3
 install:
-- pip install git+https://github.com/what-studio/smartformat.git
 - pip install -e .
 - pip install flake8 flake8-import-order pytest pytest-cov coveralls
 script:
