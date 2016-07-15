@@ -9,6 +9,10 @@
    :license: BSD, see LICENSE for more details.
 
 """
+from numbers import Number
+
+import six
+
 from tossi import parse_tolerance_style, registry
 from tossi.coda import guess_coda
 from tossi.hangul import is_hangul
@@ -58,6 +62,10 @@ class KoreanExtension(object):
                 # to use this extension implicitly.
                 return
         word, form = value, option
+        if isinstance(word, six.string_types):
+            pass
+        elif isinstance(word, Number):
+            word = six.text_type(word)
         particle = self.registry.get(form)
         suffix = particle.allomorph(word, form,
                                     tolerance_style=self.tolerance_style,

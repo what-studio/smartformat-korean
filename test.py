@@ -172,6 +172,8 @@ def test_decimal(f):
     assert f(u'{:으로}', u'레벨7') == u'레벨7로'
     assert f(u'{:으로}', u'레벨42') == u'레벨42로'
     assert f(u'{:으로}', u'레벨100') == u'레벨100으로'
+    assert f(u'{:으로}', 101) == u'101로'
+    assert f(u'{:으로}', 101.0) == u'101.0으로'
 
 
 def test_igyuho2006(f):
