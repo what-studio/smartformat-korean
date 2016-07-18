@@ -16,7 +16,7 @@ import six
 from tossi import parse_tolerance_style, registry
 from tossi.coda import guess_coda
 from tossi.hangul import is_hangul
-from tossi.particles import TOLERANCE_STYLE
+from tossi.particles import DEFAULT_TOLERANCE_STYLE
 
 
 __all__ = ['ko', 'KoreanExtension']
@@ -41,8 +41,8 @@ class KoreanExtension(object):
 
     names = ['ko', '']
 
-    def __init__(self, tolerance_style=TOLERANCE_STYLE, guess_coda=guess_coda,
-                 registry=registry):
+    def __init__(self, tolerance_style=DEFAULT_TOLERANCE_STYLE,
+                 guess_coda=guess_coda, registry=registry):
         self.tolerance_style = parse_tolerance_style(tolerance_style, registry)
         self.guess_coda = guess_coda
         self.registry = registry

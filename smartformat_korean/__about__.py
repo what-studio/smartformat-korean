@@ -3,7 +3,7 @@
    smartformat.ext.korean.__about__
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-__version__ = '0.0.2'
+__version__ = '0.0.4'
 __license__ = 'BSD'
 __author__ = 'What! Studio'
 __maintainer__ = 'Heungsub Lee'
