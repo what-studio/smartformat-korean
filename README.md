@@ -1,11 +1,11 @@
 # SmartFormat-Korean
 
-[![Build Status]
-(https://img.shields.io/travis/what-studio/smartformat-korean.svg)]
-(https://travis-ci.org/what-studio/smartformat-korean)
-[![Coverage Status]
-(https://img.shields.io/coveralls/what-studio/smartformat-korean.svg)]
-(https://coveralls.io/r/what-studio/smartformat-korean)
+[![Build Status](
+https://img.shields.io/travis/what-studio/smartformat-korean.svg)](
+https://travis-ci.org/what-studio/smartformat-korean)
+[![Coverage Status](
+https://img.shields.io/coveralls/what-studio/smartformat-korean.svg)](
+https://coveralls.io/r/what-studio/smartformat-korean)
 
 [Python 용 SmartFormat][smartformat-python]에서 쓸 수 있는 한국어 확장입니다.
 [SmartFormat.NET][smartformat-net]을 쓴다면 [C# 구현][smartformat-net-korean]을
