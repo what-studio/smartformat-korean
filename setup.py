@@ -39,5 +39,5 @@ setup(
         'Topic :: Software Development :: Localization',
         'Topic :: Text Processing :: Linguistic',
     ],
-    install_requires=['smartformat', 'tossi>=0.2'],
+    install_requires=['smartformat', 'tossi>=0.3'],
 )

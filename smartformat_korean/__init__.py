@@ -66,8 +66,7 @@ class KoreanExtension(object):
             pass
         elif isinstance(word, Number):
             word = six.text_type(word)
-        particle = self.registry.get(form)
-        suffix = particle.allomorph(word, form,
+        suffix = self.registry.pick(word, form,
                                     tolerance_style=self.tolerance_style,
                                     guess_coda=self.guess_coda)
         return formatter.format(format, value) + suffix
